@@ -1,4 +1,8 @@
+command = g++ 1.cpp
+flags = -o 1.out -Wall -lGL -lglut
 all:
-	g++ 1.cpp -o 1.out -lGL -lglut
+	$(command) $(flags)
+debug:
+	$(command) $(flags) -g
 run: all
 	./1.out

@@ -17,10 +17,10 @@
 
 using namespace std;
 
-static double d2r(double d) {
-	return (d / 180.0) * ((double)PI);
+void adasdas(){
+	float floater = 0.0f;
+	int inter = floater;
 }
-
 
 // Pocztkowy rozmiar i pozycja prostokta
 GLfloat x = 100.0f;
