@@ -15,7 +15,6 @@
 #include <cmath>
 #include <iostream>
 
-#define PI 3.141592653589
 using namespace std;
 
 static double d2r(double d) {
@@ -49,8 +48,8 @@ void RenderScene(void) {
 	glBegin(GL_POLYGON);
 	for (int i = 1; i <= 15; i++)
 	{
-		GLfloat _x = x + sin(i / 14.0 * 2 * PI) * 40;
-		GLfloat _y = y + cos(i / 14.0 * 2 * PI) * 40;
+		GLfloat _x = x + sin(i / 14.0 * 2 * M_PI) * 40;
+		GLfloat _y = y + cos(i / 14.0 * 2 * M_PI) * 40;
 		//cout << "x:" <<  _x << endl;
 		//cout << "y:" << _y << endl;
 		glVertex2f(_x,_y);
