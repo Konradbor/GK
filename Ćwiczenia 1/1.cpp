@@ -17,11 +17,6 @@
 
 using namespace std;
 
-void adasdas(){
-	float floater = 0.0f;
-	int inter = floater;
-}
-
 // Pocztkowy rozmiar i pozycja prostokta
 GLfloat x = 100.0f;
 GLfloat y = 150.0f;
