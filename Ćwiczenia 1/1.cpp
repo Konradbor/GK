@@ -20,7 +20,7 @@ using namespace std;
 // Pocztkowy rozmiar i pozycja prostokta
 GLfloat x = 80.0f;
 GLfloat y = 80.0f;
-GLsizei rsize = 50;
+GLsizei rsize = 40;
 
 // Rozmiar kroku (liczba pikseli) w osi x i y
 GLfloat xstep = 1.0f;
@@ -30,7 +30,7 @@ GLfloat windowWidth;
 GLfloat windowHeight;
 
 int iloscKatow = 15;
-float xsize, ysize = 0;
+float rightEnd, leftEnd, downEnd, upEnd = 0;
 
 ///////////////////////////////////////////////////////////
 // Wywoływana w celu przerysowania sceny
@@ -57,21 +57,21 @@ void RenderScene(void)
 	}
 	glEnd();
 	float maxRight = ceil(iloscKatow * 1 / 4.0);
-	// float maxLeft = floor(iloscKatow * 3 / 4.0);
+	float maxLeft = floor(iloscKatow * 3 / 4.0);
 	float xMaxRight = sin(maxRight / (float)iloscKatow * 2 * M_PI) * 40;
-	// float xMaxLeft = sin(maxLeft / (float)iloscKatow * 2 * M_PI) * 40;
+	float xMaxLeft = sin(maxLeft / (float)iloscKatow * 2 * M_PI) * 40;
 
-	// xsize = abs(xMaxRight - xMaxLeft);
-	xsize = abs(xMaxRight);
+	rightEnd = abs(xMaxRight);
+	leftEnd = abs(xMaxLeft);
 
 	float maxUp = ceil(iloscKatow * 0 / 4.0);
-	// float maxDown = ceil(iloscKatow * 2 / 4.0);
+	float maxDown = ceil(iloscKatow * 2 / 4.0);
 	float yMaxUp =   cos(maxUp / (float)iloscKatow * 2 * M_PI) * 40;
-	// float yMaxDown = cos(maxDown / (float)iloscKatow * 2 * M_PI) * 40;
+	float yMaxDown = cos(maxDown / (float)iloscKatow * 2 * M_PI) * 40;
 
 	// ysize = abs(yMaxUp - yMaxDown);
-	ysize = abs(yMaxUp);
-
+	upEnd = abs(yMaxUp);
+	downEnd = abs(yMaxDown);
 	// cout << xsize << endl;
 	// cout << ysize << endl;
 
@@ -84,22 +84,22 @@ void RenderScene(void)
 void TimerFunction(int value)
 {
 	// Odwrócenie kierunku, jeżeli osiągnięto lewą lub prawą krawędź
-	if (x > windowWidth - xsize || x < xsize)
+	if (x > windowWidth - rightEnd || x < leftEnd)
 		xstep = -xstep;
 
 	// Odwrócenie kierunku, jeżeli osiągnięto dolną lub górną krawędź
-	if (y > windowHeight - ysize || y < ysize)
+	if (y > windowHeight - upEnd || y < downEnd)
 		ystep = -ystep;
 
 	// Kontrola obramowania. Wykonywana jest na wypadek, gdyby okno
 	// zmniejszyło swoj wielkość w czasie, gdy kwadrat odbijał się od
 	// krawędzi, co mogłoby spowodować, że znalazł by się poza
 	// przestrzenią ograniczajcą.
-	if (x > windowWidth - xsize)
-		x = windowWidth - xsize - 1;
+	if (x > windowWidth - rsize)
+		x = windowWidth - rsize - 1;
 
-	if (y > windowHeight - ysize)
-		y = windowHeight - ysize - 1;
+	if (y > windowHeight - rsize)
+		y = windowHeight - rsize - 1;
 
 	// Wykonanie przesunięcia kwadratu
 	x += xstep;
