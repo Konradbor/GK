@@ -72,8 +72,8 @@ void RenderScene(void)
 	// ysize = abs(yMaxUp - yMaxDown);
 	ysize = abs(yMaxUp);
 
-	cout << xsize << endl;
-	cout << ysize << endl;
+	// cout << xsize << endl;
+	// cout << ysize << endl;
 
 	// Wysłanie poleceń do wykonania - !!! dla animacji to jest inne polecenie
 	glutSwapBuffers();
