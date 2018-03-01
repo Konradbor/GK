@@ -57,17 +57,17 @@ void RenderScene(void)
 	}
 	glEnd();
 	float maxRight = ceil(iloscKatow * 1 / 4.0);
-	float maxLeft = floor(iloscKatow * 3 / 4.0);
+	// float maxLeft = floor(iloscKatow * 3 / 4.0);
 	float xMaxRight = sin(maxRight / (float)iloscKatow * 2 * M_PI) * 40;
-	float xMaxLeft = sin(maxLeft / (float)iloscKatow * 2 * M_PI) * 40;
+	// float xMaxLeft = sin(maxLeft / (float)iloscKatow * 2 * M_PI) * 40;
 
 	// xsize = abs(xMaxRight - xMaxLeft);
 	xsize = abs(xMaxRight);
 
 	float maxUp = ceil(iloscKatow * 0 / 4.0);
-	float maxDown = ceil(iloscKatow * 2 / 4.0);
+	// float maxDown = ceil(iloscKatow * 2 / 4.0);
 	float yMaxUp =   cos(maxUp / (float)iloscKatow * 2 * M_PI) * 40;
-	float yMaxDown = cos(maxDown / (float)iloscKatow * 2 * M_PI) * 40;
+	// float yMaxDown = cos(maxDown / (float)iloscKatow * 2 * M_PI) * 40;
 
 	// ysize = abs(yMaxUp - yMaxDown);
 	ysize = abs(yMaxUp);
