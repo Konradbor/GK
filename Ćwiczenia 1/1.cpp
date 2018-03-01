@@ -18,8 +18,8 @@
 using namespace std;
 
 // Pocztkowy rozmiar i pozycja prostokta
-GLfloat x = 100.0f;
-GLfloat y = 150.0f;
+GLfloat x = 80.0f;
+GLfloat y = 80.0f;
 GLsizei rsize = 50;
 
 // Rozmiar kroku (liczba pikseli) w osi x i y
@@ -28,9 +28,14 @@ GLfloat ystep = 1.0f;
 // Dane zmieniajcych się rozmiarów okna
 GLfloat windowWidth;
 GLfloat windowHeight;
+
+int iloscKatow = 15;
+float xsize, ysize = 0;
+
 ///////////////////////////////////////////////////////////
 // Wywoływana w celu przerysowania sceny
-void RenderScene(void) {
+void RenderScene(void)
+{
 	// Wyczyszczenie okna aktualnym kolorem czyszczącym
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -40,18 +45,35 @@ void RenderScene(void) {
 
 	// Narysowanie prostokąta wypełnionego aktualnym kolorem
 	//glRectf(x1, y1, x1 + rsize, y1 + rsize);
+
 	glBegin(GL_POLYGON);
-	for (int i = 1; i <= 15; i++)
+	for (int i = 0; i <= iloscKatow; i++)
 	{
-		GLfloat _x = x + sin(i / 14.0 * 2 * M_PI) * 40;
-		GLfloat _y = y + cos(i / 14.0 * 2 * M_PI) * 40;
-		//cout << "x:" <<  _x << endl;
-		//cout << "y:" << _y << endl;
-		glVertex2f(_x,_y);
+		GLfloat _x = x + sin(i / (float)iloscKatow * 2 * M_PI) * 40;
+		GLfloat _y = y + cos(i / (float)iloscKatow * 2 * M_PI) * 40;
+		// cout << "x:" <<  _x << endl;
+		// cout << "y:" << _y << endl;
+		glVertex2f(_x, _y);
 	}
 	glEnd();
-	
-	
+	float maxRight = ceil(iloscKatow * 1 / 4.0);
+	float maxLeft = floor(iloscKatow * 3 / 4.0);
+	float xMaxRight = sin(maxRight / (float)iloscKatow * 2 * M_PI) * 40;
+	float xMaxLeft = sin(maxLeft / (float)iloscKatow * 2 * M_PI) * 40;
+
+	// xsize = abs(xMaxRight - xMaxLeft);
+	xsize = abs(xMaxRight);
+
+	float maxUp = ceil(iloscKatow * 0 / 4.0);
+	float maxDown = ceil(iloscKatow * 2 / 4.0);
+	float yMaxUp =   cos(maxUp / (float)iloscKatow * 2 * M_PI) * 40;
+	float yMaxDown = cos(maxDown / (float)iloscKatow * 2 * M_PI) * 40;
+
+	// ysize = abs(yMaxUp - yMaxDown);
+	ysize = abs(yMaxUp);
+
+	cout << xsize << endl;
+	cout << ysize << endl;
 
 	// Wysłanie poleceń do wykonania - !!! dla animacji to jest inne polecenie
 	glutSwapBuffers();
@@ -59,43 +81,45 @@ void RenderScene(void) {
 ///////////////////////////////////////////////////////////
 // Wywoływana przez bibliotek GLUT w czasie, gdy okno nie
 // jest przesuwane ani nie jest zmieniana jego wielkość
-void TimerFunction(int value) {
+void TimerFunction(int value)
+{
 	// Odwrócenie kierunku, jeżeli osiągnięto lewą lub prawą krawędź
-	if (x > windowWidth - rsize || x < 0)
+	if (x > windowWidth - xsize || x < xsize)
 		xstep = -xstep;
 
 	// Odwrócenie kierunku, jeżeli osiągnięto dolną lub górną krawędź
-	if (y > windowHeight - rsize || y < 0)
+	if (y > windowHeight - ysize || y < ysize)
 		ystep = -ystep;
 
+	// Kontrola obramowania. Wykonywana jest na wypadek, gdyby okno
+	// zmniejszyło swoj wielkość w czasie, gdy kwadrat odbijał się od
+	// krawędzi, co mogłoby spowodować, że znalazł by się poza
+	// przestrzenią ograniczajcą.
+	if (x > windowWidth - xsize)
+		x = windowWidth - xsize - 1;
 
-	// Kontrola obramowania. Wykonywana jest na wypadek, gdyby okno     
-	// zmniejszyło swoj wielkość w czasie, gdy kwadrat odbijał się od     
-	// krawędzi, co mogłoby spowodować, że znalazł by się poza      
-	// przestrzenią ograniczajcą.     
-	if (x > windowWidth - rsize)
-		x = windowWidth - rsize - 1;
-
-	if (y > windowHeight - rsize)
-		y = windowHeight - rsize - 1;
+	if (y > windowHeight - ysize)
+		y = windowHeight - ysize - 1;
 
 	// Wykonanie przesunięcia kwadratu
 	x += xstep;
 	y += ystep;
 
-	// Ponowne rysowanie sceny z nowymi współrzędnymi  
+	// Ponowne rysowanie sceny z nowymi współrzędnymi
 	glutPostRedisplay();
 	glutTimerFunc(1, TimerFunction, 1);
 }
 ///////////////////////////////////////////////////////////
 // Konfigurowanie stanu renderowania
-void SetupRC(void) {
-	// Ustalenie niebieskiego koloru czyszczącego     
+void SetupRC(void)
+{
+	// Ustalenie niebieskiego koloru czyszczącego
 	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
 }
 ///////////////////////////////////////////////////////////
 // Wywoływana przez bibliotek GLUT przy każdej zmianie wielkości okna
-void ChangeSize(GLsizei w, GLsizei h) {
+void ChangeSize(GLsizei w, GLsizei h)
+{
 	// Zabezpieczenie przed dzieleniem przez zero
 	if (h == 0)
 		h = 1;
@@ -111,12 +135,12 @@ void ChangeSize(GLsizei w, GLsizei h) {
 	// width and height for later use
 	if (w <= h)
 	{
-		windowHeight = 250.0f*h / w;
+		windowHeight = 250.0f * h / w;
 		windowWidth = 250.0f;
 	}
 	else
 	{
-		windowWidth = 250.0f*w / h;
+		windowWidth = 250.0f * w / h;
 		windowHeight = 250.0f;
 	}
 
@@ -128,7 +152,8 @@ void ChangeSize(GLsizei w, GLsizei h) {
 }
 ///////////////////////////////////////////////////////////
 // Główny punkt wejścia programu
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[])
+{
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 	glutInitWindowSize(800, 600);
