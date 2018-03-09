@@ -1,7 +1,6 @@
 // opengl_tekstura_2d.cpp : Defines the entry point for the console application.
 //
-#define _CRT_SECURE_NO_WARNINGS
-
+#include <cstring>
 //#include "stdafx.h"
 /*
 (c) Janusz Ganczarski

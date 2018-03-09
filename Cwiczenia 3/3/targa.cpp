@@ -4,9 +4,7 @@ http://www.januszg.hg.pl
 JanuszG@enter.net.pl
 */
 
-#define _CRT_SECURE_NO_WARNINGS
 
-#include <Windows.h>
 #include "targa.h"
 #include "glext.h"
 #include <stdio.h>
