@@ -2,6 +2,7 @@
 //
 
 //#include "stdafx.h"
+#include <cstring>
 
 /*
 (c) Janusz Ganczarski
@@ -341,7 +342,7 @@ void GenerateTextures()
     glHint(GL_TEXTURE_COMPRESSION_HINT, texture_compression_hint);
 
     // wczytanie tekstury lena.tga
-    GLboolean error = load_targa("lena.tga", width, height, format, type, pixels);
+    GLboolean error = load_targa("texture.tga", width, height, format, type, pixels);
 
     // błąd odczytu pliku
     if (error == GL_FALSE)
@@ -372,7 +373,7 @@ void GenerateTextures()
     delete[](unsigned char*)pixels;
 
     // wczytanie tekstury lena_gray.tga
-    error = load_targa("lena_gray.tga", width, height, format, type, pixels);
+    error = load_targa("texture_gray.tga", width, height, format, type, pixels);
 
     // błąd odczytu pliku
     if (error == GL_FALSE)
