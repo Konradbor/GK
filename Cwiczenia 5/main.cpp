@@ -1,7 +1,7 @@
 // opengl_swiatlo_kierunkowe.cpp : Defines the entry point for the console application.
 //
 
-#include "stdafx.h"
+//#include "stdafx.h"
 
 /*
 (c) Janusz Ganczarski
@@ -668,7 +668,7 @@ void ExtensionSetup()
 	if (major > 1 || minor >= 4)
 	{
 		// pobranie wskaźnika wybranej funkcji OpenGL 1.4
-		glWindowPos2i = (PFNGLWINDOWPOS2IPROC)wglGetProcAddress("glWindowPos2i");
+		glWindowPos2i = (PFNGLWINDOWPOS2IPROC)wglGetProcAddress((GLubyte*)"glWindowPos2i");
 	}
 	else
 		// sprawdzenie czy jest obsługiwane rozszerzenie ARB_window_pos
@@ -676,7 +676,7 @@ void ExtensionSetup()
 		{
 			// pobranie wskaźnika wybranej funkcji rozszerzenia ARB_window_pos
 			glWindowPos2i = (PFNGLWINDOWPOS2IPROC)wglGetProcAddress
-				("glWindowPos2iARB");
+				((GLubyte*)"glWindowPos2iARB");
 		}
 		else
 		{
