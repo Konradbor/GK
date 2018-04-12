@@ -1,4 +1,4 @@
-infile = targa.cpp main.cpp
+infile = main.cpp
 outfile = main.out
 command = $(CXX) $(infile) $(CXXFLAGS)
 

@@ -1,7 +1,5 @@
-// opengl_swiatlo_kierunkowe.cpp : Defines the entry point for the console application.
-//
-
 //#include "stdafx.h"
+
 
 /*
 (c) Janusz Ganczarski
@@ -11,37 +9,19 @@ JanuszG@enter.net.pl
 
 #include <GL/glut.h>
 #include <GL/glext.h>
-#ifndef WIN32
-#define GLX_GLXEXT_LEGACY
-#include <GL/glx.h>
-#define wglGetProcAddress glXGetProcAddressARB
-#endif
 #include <stdlib.h>
-#include <string.h>
 #include <stdio.h>
-#include "colors.h"
+#include <math.h>
 #include "materials.h"
 
-// wskaźnik na funkcję glWindowPos2i
+// wskaźnik dostępności rozszerzenia EXT_rescale_normal
 
-PFNGLWINDOWPOS2IPROC glWindowPos2i = NULL;
+bool rescale_normal = false;
 
 // stałe do obsługi menu podręcznego
 
 enum
 {
-	// obiekty
-	SPHERE,               // kula
-	TEAPOT,               // czajnik
-	CONE,                 // stożek
-	TORUS,                // torus
-	CUBE,                 // sześcian
-	DODECAHEDRON,         // dwunastościan
-	OCTAHEDRON,           // ośmiościan
-	TETRAHEDRON,          // czworościan
-	ICOSAHEDRON,          // dwudziestościan
-
-						  // materiały
 	BRASS,                // mosiądz
 	BRONZE,               // brąz
 	POLISHED_BRONZE,      // polerowany brąz
@@ -61,8 +41,8 @@ enum
 	TURQUOISE,            // turkus
 	BLACK_PLASTIC,        // czarny plastik
 	BLACK_RUBBER,         // czarna guma
-
-						  // obszar renderingu
+	NORMALS_SMOOTH,       // jeden wektor normalny na wierzchołek
+	NORMALS_FLAT,         // jeden wektor normalny na ścianę
 	FULL_WINDOW,          // aspekt obrazu - całe okno
 	ASPECT_1_1,           // aspekt obrazu 1:1
 	EXIT                  // wyjście
@@ -83,14 +63,14 @@ int aspect = FULL_WINDOW;
 
 // rozmiary bryły obcinania
 
-const GLdouble left = -2.0;
-const GLdouble right = 2.0;
-const GLdouble bottom = -2.0;
-const GLdouble top = 2.0;
+const GLdouble left = -1.0;
+const GLdouble right = 1.0;
+const GLdouble bottom = -1.0;
+const GLdouble top = 1.0;
 const GLdouble near = 3.0;
 const GLdouble far = 7.0;
 
-// kąty obrotu obiektu
+// kąty obrotu
 
 GLfloat rotatex = 0.0;
 GLfloat rotatey = 0.0;
@@ -99,7 +79,7 @@ GLfloat rotatey = 0.0;
 
 int button_state = GLUT_UP;
 
-// położenie kursora myszki
+// poło¿enie kursora myszki
 
 int button_x, button_y;
 
@@ -114,40 +94,95 @@ const GLfloat *diffuse = BrassDiffuse;
 const GLfloat *specular = BrassSpecular;
 GLfloat shininess = BrassShininess;
 
-// wyświetlany obiekt 3D
+// wektory normalne
 
-int object = SPHERE;
+int normals = NORMALS_FLAT;
 
-// kierunek źródła światła
+// współrzędne wierzchołków dwudziestościanu
 
-GLfloat light_position[4] =
+GLfloat vertex[12 * 3] =
 {
-	0.0,0.0,2.0,0.0
+	0.000,  0.667,  0.500,   // v0
+	0.000,  0.667, -0.500,   // v1
+	0.000, -0.667, -0.500,   // v2
+	0.000, -0.667,  0.500,   // v3
+	0.667,  0.500,  0.000,   // v4
+	0.667, -0.500,  0.000,   // v5
+	-0.667, -0.500,  0.000,  // v6
+	-0.667,  0.500,  0.000,  // v7
+	0.500,  0.000,  0.667,   // v8
+	-0.500,  0.000,  0.667,  // v9
+	-0.500,  0.000, -0.667,  // v10
+	0.500,  0.000, -0.667    // v11
 };
 
-// kąty obrotu kierunku źródła światła
+// opis ścian dwudziestościanu
 
-GLfloat light_rotatex = 0.0;
-GLfloat light_rotatey = 0.0;
-
-// funkcja rysująca napis w wybranym miejscu
-// (wersja korzystająca z funkcji glWindowPos2i)
-
-void DrawString(GLint x, GLint y, char *string)
+int triangles[20 * 3] =
 {
-	// położenie napisu
-	glWindowPos2i(x, y);
+	2, 10, 11,
+	1, 11, 10,
+	1, 10,  7,
+	1,  4, 11,
+	0,  1,  7,
+	0,  4,  1,
+	0,  9,  8,
+	3,  8,  9,
+	0,  7,  9,
+	0,  8,  4,
+	3,  9,  6,
+	3,  5,  8,
+	2,  3,  6,
+	2,  5,  3,
+	2,  6, 10,
+	2, 11,  5,
+	6,  7, 10,
+	6,  9,  7,
+	4,  5, 11,
+	4,  8,  5
+};
 
-	// wyświetlenie napisu
-	int len = strlen(string);
-	for (int i = 0; i < len; i++)
-		glutBitmapCharacter(GLUT_BITMAP_9_BY_15, string[i]);
+// obliczanie wektora normalnego dla wybranej ściany
+
+void Normal(GLfloat *n, int i)
+{
+	GLfloat v1[3], v2[3];
+
+	// obliczenie wektorów na podstawie współrzędnych wierzchołków trójkątów
+	v1[0] = vertex[3 * triangles[3 * i + 1] + 0] - vertex[3 * triangles[3 * i + 0] + 0];
+	v1[1] = vertex[3 * triangles[3 * i + 1] + 1] - vertex[3 * triangles[3 * i + 0] + 1];
+	v1[2] = vertex[3 * triangles[3 * i + 1] + 2] - vertex[3 * triangles[3 * i + 0] + 2];
+	v2[0] = vertex[3 * triangles[3 * i + 2] + 0] - vertex[3 * triangles[3 * i + 1] + 0];
+	v2[1] = vertex[3 * triangles[3 * i + 2] + 1] - vertex[3 * triangles[3 * i + 1] + 1];
+	v2[2] = vertex[3 * triangles[3 * i + 2] + 2] - vertex[3 * triangles[3 * i + 1] + 2];
+
+	// obliczenie waktora normalnego przy pomocy iloczynu wektorowego
+	n[0] = v1[1] * v2[2] - v1[2] * v2[1];
+	n[1] = v1[2] * v2[0] - v1[0] * v2[2];
+	n[2] = v1[0] * v2[1] - v1[1] * v2[0];
 }
+
+// normalizacja wektora
+
+void Normalize(GLfloat *v)
+{
+	// obliczenie długości wektora
+	GLfloat d = sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+
+	// normalizacja wektora
+	if (d)
+	{
+		v[0] /= d;
+		v[1] /= d;
+		v[2] /= d;
+	}
+}
+
 // funkcja generująca scenę 3D
 
-void DisplayScene()
+void Display()
 {
-	// kolor tła - zawartośæ bufora koloru
+	// kolor tła - zawartość bufora koloru
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 
 	// czyszczenie bufora koloru i bufora głębokości
@@ -159,18 +194,6 @@ void DisplayScene()
 	// macierz modelowania = macierz jednostkowa
 	glLoadIdentity();
 
-	// włączenie testu bufora głębokości
-	glEnable(GL_DEPTH_TEST);
-
-	// włączenie oświetlenia
-	glEnable(GL_LIGHTING);
-
-	// włączenie światła GL_LIGHT0
-	glEnable(GL_LIGHT0);
-
-	// włączenie automatycznej normalizacji wektorów normalnych
-	glEnable(GL_NORMALIZE);
-
 	// przesunięcie układu współrzędnych obiektu do środka bryły odcinania
 	glTranslatef(0, 0, -(near + far) / 2);
 
@@ -181,96 +204,131 @@ void DisplayScene()
 	// skalowanie obiektu - klawisze "+" i "-"
 	glScalef(scale, scale, scale);
 
+	// włączenie testu bufora głębokości
+	glEnable(GL_DEPTH_TEST);
+
+	// włączenie oświetlenia
+	glEnable(GL_LIGHTING);
+
+	// włączenie światła GL_LIGHT0 z parametrami domyślnymi
+	glEnable(GL_LIGHT0);
+
 	// właściwości materiału
 	glMaterialfv(GL_FRONT, GL_AMBIENT, ambient);
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse);
 	glMaterialfv(GL_FRONT, GL_SPECULAR, specular);
 	glMaterialf(GL_FRONT, GL_SHININESS, shininess);
 
-	// zmiana kierunku źródła światła jest wykonywana niezależnie
-	// od obrotów obiektu, stąd odłożenie na stos macierzy modelowania
-	glPushMatrix();
+	// włączenie automatycznej normalizacji wektorów normalnych
+	// lub automatycznego skalowania jednostkowych wektorów normalnych
+	if (rescale_normal == true)
+		glEnable(GL_RESCALE_NORMAL);
+	else
+		glEnable(GL_NORMALIZE);
 
-	// macierz modelowania = macierz jednostkowa
-	glLoadIdentity();
+	// początek definicji obiektu
+	glBegin(GL_TRIANGLES);
 
-	// obroty kierunku źródła światła - klawisze kursora
-	glRotatef(light_rotatex, 1.0, 0, 0);
-	glRotatef(light_rotatey, 0, 1.0, 0);
+	// generowanie obiektu gładkiego - jeden uśredniony
+	// wektor normalny na wierzchołek
+	if (normals == NORMALS_SMOOTH)
+		for (int i = 0; i < 20; i++)
+		{
+			// obliczanie wektora normalnego dla pierwszego wierzchołka
+			GLfloat n[3];
+			n[0] = n[1] = n[2] = 0.0;
 
-	// ustalenie kierunku źródła światła
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+			// wyszukanie wszystkich ścian posiadających bie¿ący wierzchołek
+			for (int j = 0; j < 20; j++)
+				if (3 * triangles[3 * i + 0] == 3 * triangles[3 * j + 0] ||
+					3 * triangles[3 * i + 0] == 3 * triangles[3 * j + 1] ||
+					3 * triangles[3 * i + 0] == 3 * triangles[3 * j + 2])
+				{
+					// dodawanie wektorów normalnych poszczególnych ścian
+					GLfloat nv[3];
+					Normal(nv, j);
+					n[0] += nv[0];
+					n[1] += nv[1];
+					n[2] += nv[2];
+				}
 
-	// przywrócenie pierwotnej macierzy modelowania
-	glPopMatrix();
+			// uśredniony wektor normalny jest normalizowany tylko, gdy biblioteka
+			// obsługuje automatyczne skalowania jednostkowych wektorów normalnych
+			if (rescale_normal == true)
+				Normalize(n);
+			glNormal3fv(n);
+			glVertex3fv(&vertex[3 * triangles[3 * i + 0]]);
 
-	// rysowanie wybranego obiektu 3D
-	switch (object)
-	{
-		// kula
-	case SPHERE:
-		glutSolidSphere(1.0, 50, 40);
-		break;
+			// obliczanie wektora normalnego dla drugiego wierzchołka
+			n[0] = n[1] = n[2] = 0.0;
 
-		// czajnik
-	case TEAPOT:
-		glutSolidTeapot(1);
-		break;
+			// wyszukanie wszystkich ścian posiadających bie¿ący wierzchołek
+			for (int j = 0; j < 20; j++)
+				if (3 * triangles[3 * i + 1] == 3 * triangles[3 * j + 0] ||
+					3 * triangles[3 * i + 1] == 3 * triangles[3 * j + 1] ||
+					3 * triangles[3 * i + 1] == 3 * triangles[3 * j + 2])
+				{
+					// dodawanie wektorów normalnych poszczególnych ścian
+					GLfloat nv[3];
+					Normal(nv, j);
+					n[0] += nv[0];
+					n[1] += nv[1];
+					n[2] += nv[2];
+				}
 
-		// stożek
-	case CONE:
-		glutSolidCone(1, 1, 50, 40);
-		break;
+			// uśredniony wektor normalny jest normalizowany tylko, gdy biblioteka
+			// obsługuje automatyczne skalowania jednostkowych wektorów normalnych
+			if (rescale_normal == true)
+				Normalize(n);
+			glNormal3fv(n);
+			glVertex3fv(&vertex[3 * triangles[3 * i + 1]]);
 
-		// torus
-	case TORUS:
-		glutSolidTorus(0.3, 1, 40, 50);
-		break;
+			// obliczanie wektora normalnego dla trzeciego wierzchołka
+			n[0] = n[1] = n[2] = 0.0;
 
-		// sześcian
-	case CUBE:
-		glutSolidCube(1);
-		break;
+			// wyszukanie wszystkich ścian posiadających bie¿ący wierzchołek
+			for (int j = 0; j < 20; j++)
+				if (3 * triangles[3 * i + 2] == 3 * triangles[3 * j + 0] ||
+					3 * triangles[3 * i + 2] == 3 * triangles[3 * j + 1] ||
+					3 * triangles[3 * i + 2] == 3 * triangles[3 * j + 2])
+				{
+					// dodawanie wektorów normalnych poszczególnych ścian
+					GLfloat nv[3];
+					Normal(nv, j);
+					n[0] += nv[0];
+					n[1] += nv[1];
+					n[2] += nv[2];
+				}
 
-		// dwunastościan
-	case DODECAHEDRON:
-		glutSolidDodecahedron();
-		break;
+			// uśredniony wektor normalny jest normalizowany tylko, gdy biblioteka
+			// obsługuje automatyczne skalowania jednostkowych wektorów normalnych
+			if (rescale_normal == true)
+				Normalize(n);
+			glNormal3fv(n);
+			glVertex3fv(&vertex[3 * triangles[3 * i + 2]]);
+		}
+	else
 
-		// ośmiościan
-	case OCTAHEDRON:
-		glutSolidOctahedron();
-		break;
+		// generowanie obiektu "płaskiego" - jeden wektor normalny na ścianę
+		for (int i = 0; i < 20; i++)
+		{
+			GLfloat n[3];
+			Normal(n, i);
 
-		// czworościan
-	case TETRAHEDRON:
-		glutSolidTetrahedron();
-		break;
+			// uśredniony wektor normalny jest normalizowany tylko, gdy biblioteka
+			// obsługuje automatyczne skalowania jednostkowych wektorów normalnych
+			if (rescale_normal == true)
+				Normalize(n);
+			glNormal3fv(n);
+			glVertex3fv(&vertex[3 * triangles[3 * i + 0]]);
+			glVertex3fv(&vertex[3 * triangles[3 * i + 1]]);
+			glVertex3fv(&vertex[3 * triangles[3 * i + 2]]);
+		}
 
-		// dwudziestościan
-	case ICOSAHEDRON:
-		glutSolidIcosahedron();
-		break;
-	}
+	// koniec definicji obiektu
+	glEnd();
 
-	// informacje o modyfikowanych wartościach
-	// parametrów źródła światała GL_LIGHT0
-	char string[200];
-	GLfloat vec[4];
-	glColor3fv(Black);
-
-	// kierunek źródła światła
-	glGetLightfv(GL_LIGHT0, GL_POSITION, vec);
-	sprintf(string, "GL_POSITION = (%f,%f,%f,%f)", vec[0], vec[1], vec[2], vec[3]);
-	DrawString(2, 2, string);
-
-	// kąty obrotu kierunku źródła światła
-	sprintf(string, "light_rotatex = %f", light_rotatex);
-	DrawString(2, 16, string);
-	sprintf(string, "light_rotatey = %f", light_rotatey);
-	DrawString(2, 30, string);
-
-	// skierowanie poleceń do wykonania
+	// skierowanie poleceñ do wykonania
 	glFlush();
 
 	// zamiana buforów koloru
@@ -293,12 +351,12 @@ void Reshape(int width, int height)
 	// parametry bryły obcinania
 	if (aspect == ASPECT_1_1)
 	{
-		// wysokośæ okna większa od wysokości okna
+		// wysokość okna większa od wysokości okna
 		if (width < height && width > 0)
 			glFrustum(left, right, bottom*height / width, top*height / width, near, far);
 		else
 
-			// szerokośæ okna większa lub równa wysokości okna
+			// szerokość okna większa lub równa wysokości okna
 			if (width >= height && height > 0)
 				glFrustum(left*width / height, right*width / height, bottom, top, near, far);
 	}
@@ -306,29 +364,55 @@ void Reshape(int width, int height)
 		glFrustum(left, right, bottom, top, near, far);
 
 	// generowanie sceny 3D
-	DisplayScene();
+	Display();
 }
 
 // obsługa klawiatury
 
 void Keyboard(unsigned char key, int x, int y)
 {
+	// klawisz +
+	if (key == '+')
+		scale += 0.05;
+	else
+
+		// klawisz -
+		if (key == '-' && scale > 0.05)
+			scale -= 0.05;
+
+	// narysowanie sceny
+	Display();
+}
+
+// obsługa klawiszy funkcyjnych i klawiszy kursora
+
+void SpecialKeys(int key, int x, int y)
+{
 	switch (key)
 	{
-		// klawisz "+" - powiększenie obiektu
-	case '+':
-		scale += 0.05;
+		// kursor w lewo
+	case GLUT_KEY_LEFT:
+		rotatey -= 1;
 		break;
 
-		// klawisz "-" - zmniejszenie obiektu
-	case '-':
-		if (scale > 0.05)
-			scale -= 0.05;
+		// kursor w górę
+	case GLUT_KEY_UP:
+		rotatex -= 1;
+		break;
+
+		// kursor w prawo
+	case GLUT_KEY_RIGHT:
+		rotatey += 1;
+		break;
+
+		// kursor w dół
+	case GLUT_KEY_DOWN:
+		rotatex += 1;
 		break;
 	}
 
-	// narysowanie sceny
-	DisplayScene();
+	// odrysowanie okna
+	Reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
 }
 
 // obsługa przycisków myszki
@@ -340,7 +424,7 @@ void MouseButton(int button, int state, int x, int y)
 		// zapamiętanie stanu lewego przycisku myszki
 		button_state = state;
 
-		// zapamiętanie położenia kursora myszki
+		// zapamiętanie poło¿enia kursora myszki
 		if (state == GLUT_DOWN)
 		{
 			button_x = x;
@@ -363,104 +447,19 @@ void MouseMotion(int x, int y)
 	}
 }
 
-// obsługa klawiszy funkcyjnych i klawiszy kursora
-
-void SpecialKeys(int key, int x, int y)
-{
-	switch (key)
-	{
-		// kursor w lewo
-	case GLUT_KEY_LEFT:
-		light_rotatey -= 5;
-		break;
-
-		// kursor w prawo
-	case GLUT_KEY_RIGHT:
-		light_rotatey += 5;
-		break;
-
-		// kursor w dół
-	case GLUT_KEY_DOWN:
-		light_rotatex += 5;
-		break;
-
-		// kursor w górę
-	case GLUT_KEY_UP:
-		light_rotatex -= 5;
-		break;
-	}
-
-	// odrysowanie okna
-	DisplayScene();
-}
-
 // obsługa menu podręcznego
 
 void Menu(int value)
 {
 	switch (value)
 	{
-		// rysowany obiekt - kula
-	case SPHERE:
-		object = SPHERE;
-		DisplayScene();
-		break;
-
-		// rysowany obiekt - czajnik
-	case TEAPOT:
-		object = TEAPOT;
-		DisplayScene();
-		break;
-
-		// rysowany obiekt - stożek
-	case CONE:
-		object = CONE;
-		DisplayScene();
-		break;
-
-		// rysowany obiekt - torus
-	case TORUS:
-		object = TORUS;
-		DisplayScene();
-		break;
-
-		// rysowany obiekt - sześcian
-	case CUBE:
-		object = CUBE;
-		DisplayScene();
-		break;
-
-		// rysowany obiekt - dwunastościan
-	case DODECAHEDRON:
-		object = DODECAHEDRON;
-		DisplayScene();
-		break;
-
-		// rysowany obiekt - ośmiościan
-	case OCTAHEDRON:
-		object = OCTAHEDRON;
-		DisplayScene();
-		break;
-
-		// rysowany obiekt - czworościan
-	case TETRAHEDRON:
-		object = TETRAHEDRON;
-		DisplayScene();
-		break;
-
-		// rysowany obiekt - dwudziestościan
-	case ICOSAHEDRON:
-		object = ICOSAHEDRON;
-		DisplayScene();
-		break;
-
 		// materiał - mosiądz
 	case BRASS:
 		ambient = BrassAmbient;
 		diffuse = BrassDiffuse;
 		specular = BrassSpecular;
 		shininess = BrassShininess;
-		DisplayScene();
+		Display();
 		break;
 
 		// materiał - brąz
@@ -469,7 +468,7 @@ void Menu(int value)
 		diffuse = BronzeDiffuse;
 		specular = BronzeSpecular;
 		shininess = BronzeShininess;
-		DisplayScene();
+		Display();
 		break;
 
 		// materiał - polerowany brąz
@@ -478,7 +477,7 @@ void Menu(int value)
 		diffuse = PolishedBronzeDiffuse;
 		specular = PolishedBronzeSpecular;
 		shininess = PolishedBronzeShininess;
-		DisplayScene();
+		Display();
 		break;
 
 		// materiał - chrom
@@ -487,7 +486,7 @@ void Menu(int value)
 		diffuse = ChromeDiffuse;
 		specular = ChromeSpecular;
 		shininess = ChromeShininess;
-		DisplayScene();
+		Display();
 		break;
 
 		// materiał - miedź
@@ -496,7 +495,7 @@ void Menu(int value)
 		diffuse = CopperDiffuse;
 		specular = CopperSpecular;
 		shininess = CopperShininess;
-		DisplayScene();
+		Display();
 		break;
 
 		// materiał - polerowana miedź
@@ -505,7 +504,7 @@ void Menu(int value)
 		diffuse = PolishedCopperDiffuse;
 		specular = PolishedCopperSpecular;
 		shininess = PolishedCopperShininess;
-		DisplayScene();
+		Display();
 		break;
 
 		// materiał - złoto
@@ -514,7 +513,7 @@ void Menu(int value)
 		diffuse = GoldDiffuse;
 		specular = GoldSpecular;
 		shininess = GoldShininess;
-		DisplayScene();
+		Display();
 		break;
 
 		// materiał - polerowane złoto
@@ -523,7 +522,7 @@ void Menu(int value)
 		diffuse = PolishedGoldDiffuse;
 		specular = PolishedGoldSpecular;
 		shininess = PolishedGoldShininess;
-		DisplayScene();
+		Display();
 		break;
 
 		// materiał - grafit (cyna z ołowiem)
@@ -532,7 +531,7 @@ void Menu(int value)
 		diffuse = PewterDiffuse;
 		specular = PewterSpecular;
 		shininess = PewterShininess;
-		DisplayScene();
+		Display();
 		break;
 
 		// materiał - srebro
@@ -541,7 +540,7 @@ void Menu(int value)
 		diffuse = SilverDiffuse;
 		specular = SilverSpecular;
 		shininess = SilverShininess;
-		DisplayScene();
+		Display();
 		break;
 
 		// materiał - polerowane srebro
@@ -550,7 +549,7 @@ void Menu(int value)
 		diffuse = PolishedSilverDiffuse;
 		specular = PolishedSilverSpecular;
 		shininess = PolishedSilverShininess;
-		DisplayScene();
+		Display();
 		break;
 
 		// materiał - szmaragd
@@ -559,7 +558,7 @@ void Menu(int value)
 		diffuse = EmeraldDiffuse;
 		specular = EmeraldSpecular;
 		shininess = EmeraldShininess;
-		DisplayScene();
+		Display();
 		break;
 
 		// materiał - jadeit
@@ -568,7 +567,7 @@ void Menu(int value)
 		diffuse = JadeDiffuse;
 		specular = JadeSpecular;
 		shininess = JadeShininess;
-		DisplayScene();
+		Display();
 		break;
 
 		// materiał - obsydian
@@ -577,7 +576,7 @@ void Menu(int value)
 		diffuse = ObsidianDiffuse;
 		specular = ObsidianSpecular;
 		shininess = ObsidianShininess;
-		DisplayScene();
+		Display();
 		break;
 
 		// materiał - perła
@@ -586,7 +585,7 @@ void Menu(int value)
 		diffuse = PearlDiffuse;
 		specular = PearlSpecular;
 		shininess = PearlShininess;
-		DisplayScene();
+		Display();
 		break;
 
 		// metariał - rubin
@@ -595,7 +594,7 @@ void Menu(int value)
 		diffuse = RubyDiffuse;
 		specular = RubySpecular;
 		shininess = RubyShininess;
-		DisplayScene();
+		Display();
 		break;
 
 		// materiał - turkus
@@ -604,7 +603,7 @@ void Menu(int value)
 		diffuse = TurquoiseDiffuse;
 		specular = TurquoiseSpecular;
 		shininess = TurquoiseShininess;
-		DisplayScene();
+		Display();
 		break;
 
 		// materiał - czarny plastik
@@ -613,7 +612,7 @@ void Menu(int value)
 		diffuse = BlackPlasticDiffuse;
 		specular = BlackPlasticSpecular;
 		shininess = BlackPlasticShininess;
-		DisplayScene();
+		Display();
 		break;
 
 		// materiał - czarna guma
@@ -622,7 +621,19 @@ void Menu(int value)
 		diffuse = BlackRubberDiffuse;
 		specular = BlackRubberSpecular;
 		shininess = BlackRubberShininess;
-		DisplayScene();
+		Display();
+		break;
+
+		// wektory normalne - GLU_SMOOTH
+	case NORMALS_SMOOTH:
+		normals = NORMALS_SMOOTH;
+		Display();
+		break;
+
+		// wektory normalne - GLU_FLAT
+	case NORMALS_FLAT:
+		normals = NORMALS_FLAT;
+		Display();
 		break;
 
 		// obszar renderingu - całe okno
@@ -643,7 +654,7 @@ void Menu(int value)
 	}
 }
 
-// sprawdzenie i przygotowanie obsługi wybranych rozszerzeń
+// sprawdzenie i przygotowanie obsługi wybranych rozszerzeñ
 
 void ExtensionSetup()
 {
@@ -664,25 +675,13 @@ void ExtensionSetup()
 		exit(0);
 	}
 
-	// sprawdzenie czy jest co najmniej wersja 1.4
-	if (major > 1 || minor >= 4)
-	{
-		// pobranie wskaźnika wybranej funkcji OpenGL 1.4
-		glWindowPos2i = (PFNGLWINDOWPOS2IPROC)wglGetProcAddress((GLubyte*)"glWindowPos2i");
-	}
+	// sprawdzenie czy jest co najmniej wersja 1.2
+	if (major > 1 || minor >= 2)
+		rescale_normal = true;
 	else
-		// sprawdzenie czy jest obsługiwane rozszerzenie ARB_window_pos
-		if (glutExtensionSupported("GL_ARB_window_pos"))
-		{
-			// pobranie wskaźnika wybranej funkcji rozszerzenia ARB_window_pos
-			glWindowPos2i = (PFNGLWINDOWPOS2IPROC)wglGetProcAddress
-				((GLubyte*)"glWindowPos2iARB");
-		}
-		else
-		{
-			printf("Brak rozszerzenia ARB_window_pos!\n");
-			exit(0);
-		}
+		// sprawdzenie czy jest obsługiwane rozszerzenie EXT_rescale_normal
+		if (glutExtensionSupported("GL_EXT_rescale_normal"))
+			rescale_normal = true;
 }
 
 int main(int argc, char *argv[])
@@ -697,17 +696,10 @@ int main(int argc, char *argv[])
 	glutInitWindowSize(500, 500);
 
 	// utworzenie głównego okna programu
-
-#ifdef WIN32
-
-	glutCreateWindow("światło kierunkowe");
-#else
-
-	glutCreateWindow("Swiatlo kierunkowe");
-#endif
+	glutCreateWindow("Wektory normalne");
 
 	// dołączenie funkcji generującej scenę 3D
-	glutDisplayFunc(DisplayScene);
+	glutDisplayFunc(Display);
 
 	// dołączenie funkcji wywoływanej przy zmianie rozmiaru okna
 	glutReshapeFunc(Reshape);
@@ -726,31 +718,6 @@ int main(int argc, char *argv[])
 
 	// utworzenie menu podręcznego
 	glutCreateMenu(Menu);
-
-	// utworzenie podmenu - obiekt
-	int MenuObject = glutCreateMenu(Menu);
-	glutAddMenuEntry("Kula", SPHERE);
-	glutAddMenuEntry("Czajnik", TEAPOT);
-
-#ifdef WIN32
-
-	glutAddMenuEntry("Stożek", CONE);
-	glutAddMenuEntry("Torus", TORUS);
-	glutAddMenuEntry("Sześcian", CUBE);
-	glutAddMenuEntry("Dwunastościan", DODECAHEDRON);
-	glutAddMenuEntry("Ośmiościan", OCTAHEDRON);
-	glutAddMenuEntry("Czworościan", TETRAHEDRON);
-	glutAddMenuEntry("Dwudziestościan", ICOSAHEDRON);
-#else
-
-	glutAddMenuEntry("Stozek", CONE);
-	glutAddMenuEntry("Torus", TORUS);
-	glutAddMenuEntry("Szescian", CUBE);
-	glutAddMenuEntry("Dwunastoscian", DODECAHEDRON);
-	glutAddMenuEntry("Osmioscian", OCTAHEDRON);
-	glutAddMenuEntry("Czworoscian", TETRAHEDRON);
-	glutAddMenuEntry("Dwudziestoscian", ICOSAHEDRON);
-#endif
 
 	// utworzenie podmenu - Materiał
 	int MenuMaterial = glutCreateMenu(Menu);
@@ -798,9 +765,21 @@ int main(int argc, char *argv[])
 	glutAddMenuEntry("Czarna guma", BLACK_RUBBER);
 #endif
 
-	// utworzenie podmenu - Aspekt obrazu
+	// utworzenie podmenu - Wektory normalne
+	int MenuNormals = glutCreateMenu(Menu);
+#ifndef WIN32
+
+	glutAddMenuEntry("Jeden wektor normalny na wierzcholek", NORMALS_SMOOTH);
+	glutAddMenuEntry("Jeden wektor normalny na sciane", NORMALS_FLAT);
+#else
+
+	glutAddMenuEntry("Jeden wektor normalny na wierzchołek", NORMALS_SMOOTH);
+	glutAddMenuEntry("Jeden wektor normalny na ścianę", NORMALS_FLAT);
+#endif
+
+	// utworzenie podmenu - aspekt obrazu
 	int MenuAspect = glutCreateMenu(Menu);
-#ifdef WIN32
+#ifndef WIN32
 
 	glutAddMenuEntry("Aspekt obrazu - całe okno", FULL_WINDOW);
 #else
@@ -812,7 +791,6 @@ int main(int argc, char *argv[])
 
 	// menu główne
 	glutCreateMenu(Menu);
-	glutAddSubMenu("Obiekt", MenuObject);
 
 #ifdef WIN32
 
@@ -822,8 +800,9 @@ int main(int argc, char *argv[])
 	glutAddSubMenu("Material", MenuMaterial);
 #endif
 
+	glutAddSubMenu("Wektory normalne", MenuNormals);
 	glutAddSubMenu("Aspekt obrazu", MenuAspect);
-#ifdef WIN32
+#ifndef WIN32
 
 	glutAddMenuEntry("Wyjście", EXIT);
 #else
@@ -834,7 +813,7 @@ int main(int argc, char *argv[])
 	// określenie przycisku myszki obsługującej menu podręczne
 	glutAttachMenu(GLUT_RIGHT_BUTTON);
 
-	// sprawdzenie i przygotowanie obsługi wybranych rozszerzeń
+	// sprawdzenie i przygotowanie obsługi wybranych rozszerzeñ
 	ExtensionSetup();
 
 	// wprowadzenie programu do obsługi pętli komunikatów
