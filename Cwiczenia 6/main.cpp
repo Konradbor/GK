@@ -78,22 +78,23 @@ void Cube3x3()
 	glutWireCube(1.0);
 	glTranslatef(1.0, 0.0, 0.0);
 	glutWireCube(1.0);*/
+	auto distance = 3.25;
 	glutWireDodecahedron();
-	glTranslatef(5.0, 0.0, 0.0);
+	glTranslatef(distance, 0.0, 0.0);
 	glutWireDodecahedron();
-	glTranslatef(0.0, -5.0, 0.0);
+	glTranslatef(0.0, -distance, 0.0);
 	glutWireDodecahedron();
-	glTranslatef(-5.0, 0.0, 0.0);
+	glTranslatef(-distance, 0.0, 0.0);
 	glutWireDodecahedron();
-	glTranslatef(-5.0, 0.0, 0.0);
+	glTranslatef(-distance, 0.0, 0.0);
 	glutWireDodecahedron();
-	glTranslatef(0.0, 5.0, 0.0);
+	glTranslatef(0.0, distance, 0.0);
 	glutWireDodecahedron();
-	glTranslatef(0.0, 5.0, 0.0);
+	glTranslatef(0.0, distance, 0.0);
 	glutWireDodecahedron();
-	glTranslatef(5.0, 0.0, 0.0);
+	glTranslatef(distance, 0.0, 0.0);
 	glutWireDodecahedron();
-	glTranslatef(5.0, 0.0, 0.0);
+	glTranslatef(distance, 0.0, 0.0);
 	glutWireDodecahedron();
 }
 
@@ -101,12 +102,13 @@ void Cube3x3()
 
 void Cube2x2()
 {
+	auto distance = 3.25;
 	glutWireDodecahedron();
-	glTranslatef(5.0, 0.0, 0.0);
+	glTranslatef(distance, 0.0, 0.0);
 	glutWireDodecahedron();
-	glTranslatef(0.0, -5.0, 0.0);
+	glTranslatef(0.0, -distance, 0.0);
 	glutWireDodecahedron();
-	glTranslatef(-5.0, 0.0, 0.0);
+	glTranslatef(-distance, 0.0, 0.0);
 	glutWireDodecahedron();
 }
 
@@ -114,84 +116,86 @@ void Cube2x2()
 
 void Pyramid()
 {
+	auto distanceFundament = 3.25;
 	// podstawa 6x6
 	glPushMatrix();
-	glTranslatef(1.5, 1.5, 0.0);
+	glTranslatef(distanceFundament, distanceFundament, 0.0);
 	Cube3x3();
 	glPopMatrix();
 	glPushMatrix();
-	glTranslatef(1.5, -1.5, 0.0);
+	glTranslatef(distanceFundament, -distanceFundament, 0.0);
 	Cube3x3();
 	glPopMatrix();
 	glPushMatrix();
-	glTranslatef(-1.5, -1.5, 0.0);
+	glTranslatef(-distanceFundament, -distanceFundament, 0.0);
 	Cube3x3();
 	glPopMatrix();
 	glPushMatrix();
-	glTranslatef(-1.5, 1.5, 0.0);
+	glTranslatef(-distanceFundament, distanceFundament, 0.0);
 	Cube3x3();
 	glPopMatrix();
 
 	// drugi poziom 5x5
+
 	glPushMatrix();
-	glTranslatef(0.0, 0.0, 1.0);
+	glTranslatef(0.0, 0.0, distanceFundament);
 	glPushMatrix();
-	glTranslatef(1.0, 1.0, 0.0);
+	glTranslatef(distanceFundament, distanceFundament, 0.0);
 	Cube3x3();
 	glPopMatrix();
 	glPushMatrix();
-	glTranslatef(1.0, -1.0, 0.0);
+	glTranslatef(distanceFundament, -distanceFundament, 0.0);
 	Cube2x2();
 	glPopMatrix();
 	glPushMatrix();
-	glTranslatef(-2.0, 2.0, 0.0);
+	glTranslatef(-distanceFundament*2, distanceFundament*2, 0.0);
 	Cube2x2();
 	glPopMatrix();
 	glPushMatrix();
-	glTranslatef(-1.0, -1.0, 0.0);
+	glTranslatef(-distanceFundament, -distanceFundament, 0.0);
 	Cube3x3();
 	glPopMatrix();
 	glPopMatrix();
 
-	// trzeci poziom 4x4
-	glPushMatrix();
-	glTranslatef(0.0, 0.0, 2.0);
-	glPushMatrix();
-	glTranslatef(0.5, -0.5, 0.0);
-	Cube2x2();
-	glPopMatrix();
-	glPushMatrix();
-	glTranslatef(0.5, 1.5, 0.0);
-	Cube2x2();
-	glPopMatrix();
-	glPushMatrix();
-	glTranslatef(-1.5, 1.5, 0.0);
-	Cube2x2();
-	glPopMatrix();
-	glPushMatrix();
-	glTranslatef(-1.5, -0.5, 0.0);
-	Cube2x2();
-	glPopMatrix();
-	glPopMatrix();
+	//// trzeci poziom 4x4
+	//glPushMatrix();
+	//glTranslatef(0.0, 0.0, 2.0);
+	//glPushMatrix();
+	//glTranslatef(0.5, -0.5, 0.0);
+	//Cube2x2();
+	//glPopMatrix();
+	//glPushMatrix();
+	//glTranslatef(0.5, 1.5, 0.0);
+	//Cube2x2();
+	//glPopMatrix();
+	//glPushMatrix();
+	//glTranslatef(-1.5, 1.5, 0.0);
+	//Cube2x2();
+	//glPopMatrix();
+	//glPushMatrix();
+	//glTranslatef(-1.5, -0.5, 0.0);
+	//Cube2x2();
+	//glPopMatrix();
+	//glPopMatrix();
 
-	// czwarty poziom 3x3
-	glPushMatrix();
-	glTranslatef(0.0, 0.0, 3.0);
-	Cube3x3();
-	glPopMatrix();
+	//// czwarty poziom 3x3
+	//glPushMatrix();
+	//glTranslatef(0.0, 0.0, 3.0);
+	//Cube3x3();
+	//glPopMatrix();
 
-	// piąty poziom 2x2
-	glPushMatrix();
-	glTranslatef(0.0, 0.0, 4.0);
-	glTranslatef(-0.5, 0.5, 0.0);
-	Cube2x2();
-	glPopMatrix();
+	//// piąty poziom 2x2
+	//glPushMatrix();
+	//glTranslatef(0.0, 0.0, 4.0);
+	//glTranslatef(-0.5, 0.5, 0.0);
+	//Cube2x2();
+	//glPopMatrix();
 
-	// szósty poziom 1x1
-	glPushMatrix();
-	glTranslatef(0.0, 0.0, 5.0);
-	glutWireCube(1.0);
-	glPopMatrix();
+	//// szósty poziom 1x1
+	//glPushMatrix();
+	//glTranslatef(0.0, 0.0, 5.0);
+	//glutWireDodecahedron();
+	//glPopMatrix();
 }
 
 // funkcja generująca scenę 3D
@@ -228,6 +232,7 @@ void Display()
 
 	// rysowanie piramidy
 	Pyramid();
+	//Cube2x2();
 
 	// skierowanie poleceń do wykonania
 	glFlush();
@@ -293,22 +298,22 @@ void SpecialKeys(int key, int x, int y)
 	{
 		// kursor w lewo
 	case GLUT_KEY_LEFT:
-		rotatey -= 1;
+		rotatey -= 1 * 5;
 		break;
 
 		// kursor w górę
 	case GLUT_KEY_UP:
-		rotatex -= 1;
+		rotatex -= 1 * 5;
 		break;
 
 		// kursor w prawo
 	case GLUT_KEY_RIGHT:
-		rotatey += 1;
+		rotatey += 1 * 5;
 		break;
 
 		// kursor w dół
 	case GLUT_KEY_DOWN:
-		rotatex += 1;
+		rotatex += 1 * 5;
 		break;
 	}
 
