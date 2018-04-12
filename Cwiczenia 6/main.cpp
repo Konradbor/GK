@@ -61,7 +61,7 @@ int button_x, button_y;
 
 void Cube3x3()
 {
-	glutWireCube(1.0);
+	/*glutWireCube(1.0);
 	glTranslatef(1.0, 0.0, 0.0);
 	glutWireCube(1.0);
 	glTranslatef(0.0, -1.0, 0.0);
@@ -77,20 +77,37 @@ void Cube3x3()
 	glTranslatef(1.0, 0.0, 0.0);
 	glutWireCube(1.0);
 	glTranslatef(1.0, 0.0, 0.0);
-	glutWireCube(1.0);
+	glutWireCube(1.0);*/
+	glutWireDodecahedron();
+	glTranslatef(5.0, 0.0, 0.0);
+	glutWireDodecahedron();
+	glTranslatef(0.0, -5.0, 0.0);
+	glutWireDodecahedron();
+	glTranslatef(-5.0, 0.0, 0.0);
+	glutWireDodecahedron();
+	glTranslatef(-5.0, 0.0, 0.0);
+	glutWireDodecahedron();
+	glTranslatef(0.0, 5.0, 0.0);
+	glutWireDodecahedron();
+	glTranslatef(0.0, 5.0, 0.0);
+	glutWireDodecahedron();
+	glTranslatef(5.0, 0.0, 0.0);
+	glutWireDodecahedron();
+	glTranslatef(5.0, 0.0, 0.0);
+	glutWireDodecahedron();
 }
 
 // funkcja rysująca blok 2x2
 
 void Cube2x2()
 {
-	glutWireCube(1.0);
-	glTranslatef(1.0, 0.0, 0.0);
-	glutWireCube(1.0);
-	glTranslatef(0.0, -1.0, 0.0);
-	glutWireCube(1.0);
-	glTranslatef(-1.0, 0.0, 0.0);
-	glutWireCube(1.0);
+	glutWireDodecahedron();
+	glTranslatef(5.0, 0.0, 0.0);
+	glutWireDodecahedron();
+	glTranslatef(0.0, -5.0, 0.0);
+	glutWireDodecahedron();
+	glTranslatef(-5.0, 0.0, 0.0);
+	glutWireDodecahedron();
 }
 
 // funkcja rysująca piramidę z sześcianów
