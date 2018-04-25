@@ -113,7 +113,7 @@ void Menu(int value)
 
 		//
 	case 3:
-		glColor3f(0.0f, 0.0f, 1.0f);
+		glColor3f(0.647f, 0.165f, 0.165f);
 		RenderScene();
 		break;
 
