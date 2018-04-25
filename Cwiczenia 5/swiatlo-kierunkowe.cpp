@@ -182,10 +182,10 @@ void DisplayScene()
 	glScalef(scale, scale, scale);
 
 	// właściwości materiału
-	glMaterialfv(GL_FRONT, GL_AMBIENT, ambient);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, specular);
-	glMaterialf(GL_FRONT, GL_SHININESS, shininess);
+	 glMaterialfv(GL_FRONT, GL_AMBIENT, ambient);
+	 glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse);
+	 glMaterialfv(GL_FRONT, GL_SPECULAR, specular);
+	 glMaterialf(GL_FRONT, GL_SHININESS, shininess);
 
 	// zmiana kierunku źródła światła jest wykonywana niezależnie
 	// od obrotów obiektu, stąd odłożenie na stos macierzy modelowania
