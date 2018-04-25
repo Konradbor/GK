@@ -18,6 +18,8 @@ JanuszG@enter.net.pl
 
 bool rescale_normal = false;
 
+// bool ambientToggle = true;
+
 // stałe do obsługi menu podręcznego
 
 enum
@@ -642,6 +644,11 @@ void Menu(int value)
 		Reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
 		break;
 
+	// case AMBIENT:
+	// 	ambientToggle = !ambientToggle;
+	// 	Display();
+	// 	break;
+
 		// obszar renderingu - aspekt 1:1
 	case ASPECT_1_1:
 		aspect = ASPECT_1_1;
@@ -803,6 +810,7 @@ int main(int argc, char *argv[])
 	glutAddSubMenu("Wektory normalne", MenuNormals);
 	glutAddSubMenu("Aspekt obrazu", MenuAspect);
 #ifndef WIN32
+	// glutAddMenuEntry("Swiatlo otaczajace", AMBIENT);
 
 	glutAddMenuEntry("Wyjście", EXIT);
 #else
