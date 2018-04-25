@@ -263,13 +263,12 @@ void GenerateTextures()
 	GLvoid *pixels;
 	// tryb upakowania bajtów danych tekstury
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	// wczytanie tekstury Venus utworzonej ze zdjęć sondy Magellan
-	// plik: http://maps.jpl.nasa.gov/pix/ven0aaa2.tif
+	// wczytanie tekstury Saturna
 	GLboolean error = load_targa("sat0fds1.tga", width, height, format, type, pixels);
 	// błąd odczytu pliku
 	if (error == GL_FALSE)
 	{
-		printf("Niepoprawny odczyt pliku ven0aaa2.tga");
+		printf("Niepoprawny odczyt pliku sat0fds1.tga");
 		exit(0);
 	}
 	// utworzenie identyfikatora tekstury
@@ -278,6 +277,7 @@ void GenerateTextures()
 	glBindTexture(GL_TEXTURE_2D, VENUS);
 	// utworzenie tekstury wraz z mipmapami
 	gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB, width, height, format, type, pixels);
+	//gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB, 1024, 512, format, type, pixels);
 	// porządki
 	delete[](unsigned char*)pixels;
 	// wczytanie tekstury z hipsometryczną (fizyczną) mapą Ziemi
@@ -337,7 +337,7 @@ void ExtensionSetup()
 	if (major > 1 || minor >= 4)
 	{
 		// pobranie wskaŸnika wybranej funkcji OpenGL 1.4
-		glWindowPos2i = (PFNGLWINDOWPOS2IPROC)wglGetProcAddress("glWindowPos2i");
+		glWindowPos2i = (PFNGLWINDOWPOS2IPROC)wglGetProcAddress((const GLubyte*)"glWindowPos2i");
 	}
 	else
 		// sprawdzenie czy jest obsługiwane rozszerzenie ARB_window_pos
@@ -345,7 +345,7 @@ void ExtensionSetup()
 		{
 			// pobranie wskaŸnika wybranej funkcji rozszerzenia ARB_window_pos
 			glWindowPos2i = (PFNGLWINDOWPOS2IPROC)wglGetProcAddress
-			("glWindowPos2iARB");
+			((const GLubyte*)"glWindowPos2iARB");
 		}
 		else
 		{
