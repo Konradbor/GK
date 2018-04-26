@@ -1,11 +1,7 @@
 // opengl_zbufor.cpp : Defines the entry point for the console application.
 //
 
-
 //#include "stdafx.h"
-
-
-
 
 /*
 (c) Janusz Ganczarski
@@ -13,14 +9,12 @@ http://www.januszg.hg.pl
 JanuszG@enter.net.pl
 */
 
-
 #include <GL/glut.h>
 #include <stdlib.h>
 #include "colors.h"
-
+#include <cmath>
 
 // rozmiary bryły obcinania
-
 
 const GLdouble left = -2.0;
 const GLdouble right = 2.0;
@@ -29,92 +23,68 @@ const GLdouble top = 2.0;
 const GLdouble near_ = 3.0;
 const GLdouble far_ = 7.0;
 
-
 // stałe do obsługi menu podręcznego
-
 
 enum
 {
-        CUTTING_PLANE, // płaszczyzna przekroju
+        CUTTING_PLANE,  // płaszczyzna przekroju
         POLYGON_OFFSET, // przesunięcie wartości głębi
-        EXIT // wyjście
+        EXIT            // wyjście
 };
-
 
 // kąt obrotu kuli
 
-
 GLfloat angle = 0.0;
 
-
 // kąty obrotu sześcianu
-
 
 GLfloat rotatex = 0.0;
 GLfloat rotatey = 0.0;
 
-
 // wskaźnik rysowania płaszczyzna przekroju
-
 
 bool cutting_plane = true;
 
-
 // wskaźnik przesunięcia wartości głębi
-
 
 bool polygon_offset = true;
 
-
 // wskaźnik naciśnięcia lewego przycisku myszki
-
 
 int button_state = GLUT_UP;
 
-
 // położenie kursora myszki
-
 
 int button_x, button_y;
 
-
 // funkcja generująca scenę 3D
-
 
 void Display()
 {
         // kolor tła - zawartość bufora koloru
         glClearColor(1.0, 1.0, 1.0, 1.0);
 
-
         // czyszczenie bufora koloru i bufora głębokości
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 
         // wybór macierzy modelowania
         glMatrixMode(GL_MODELVIEW);
 
-
         // macierz modelowania = macierz jednostkowa
         glLoadIdentity();
 
-
         // przesunięcie układu współrzędnych sześcianu do środka bryły odcinania
         glTranslatef(0, 0, -(near_ + far_) / 2);
-
 
         // obroty sześcianu
         glRotatef(rotatex, 1.0, 0, 0);
         glRotatef(rotatey, 0, 1.0, 0);
 
-
         // niewielkie powiększenie sześcianu
         glScalef(1.15, 1.15, 1.15);
 
-
         // włączenie testu bufora głębokości
         glEnable(GL_DEPTH_TEST);
-
 
         // najpierw rysujemy kulę obracającą się wewnątrz sześcianu;
         // z uwagi na celowy brak efektów oświetlenia, obrót kuli
@@ -126,7 +96,6 @@ void Display()
         if (polygon_offset)
                 glEnable(GL_POLYGON_OFFSET_FILL);
 
-
         glPolygonOffset(1.0, 1.0);
         glutSolidSphere(0.5, 10, 10);
         glColor3fv(Black);
@@ -134,9 +103,7 @@ void Display()
         if (polygon_offset)
                 glDisable(GL_POLYGON_OFFSET_FILL);
 
-
         glPopMatrix();
-
 
         // w drugiej kolejności rysujemy wnętrze sześcianu;
         // rysowane są tylko przednie strony wewnętrznych ścian
@@ -179,81 +146,106 @@ void Display()
         glEnd();
         glDisable(GL_CULL_FACE);*/
 
-
         // rysowanie płaszczyzny otworu w sześcianie
         if (cutting_plane)
         {
                 // wyłączenie rysowania w buforze kolorów
                 glDrawBuffer(GL_NONE);
 
-
                 // rysowanie kwadratu częściowo odsłaniającego wnętrze sześcianu
                 // (kwadrat jest położony o 0,001 jednostki nad bokiem sześcianu)
-                glBegin(GL_QUADS);
-                glVertex3f(-0.6, -0.6, 1.001);
-                glVertex3f(0.6, -0.6, 1.001);
-                glVertex3f(0.6, 0.6, 1.001);
-                glVertex3f(-0.6, 0.6, 1.001);
+                // glBegin(GL_QUADS);
+                // float dist = 2;
+                // float size = 4;
+                // glVertex3f(-size, -size, dist);
+                // glVertex3f( size, -size, dist);
+                // glVertex3f( size,  size, dist);
+                // glVertex3f(-size,  size, dist);
+                // glEnd();
+                int iloscKatow = 12;
+                GLfloat x = 0.0f;
+                GLfloat y = 0.0f;
+                float dist = 1;
+                float rsize = 0.7;
+                glBegin(GL_POLYGON);
+                for (int i = 0; i <= iloscKatow; i++)
+                {
+                        GLfloat _x = x + sin(i / (float)iloscKatow * 2 * M_PI) * rsize;
+                        GLfloat _y = y + cos(i / (float)iloscKatow * 2 * M_PI) * rsize;
+                        // cout << "x:" <<  _x << endl;
+                        // cout << "y:" << _y << endl;
+                        glVertex3f(_x, _y, dist);
+                }
                 glEnd();
-
 
                 // włączenie rysowania w buforze kolorów
                 glDrawBuffer(GL_BACK);
         }
-
 
         // właściwy sześcian z obramowaniem, którego rysowanie wymusza brak oświetlenia
         glColor3fv(Red);
         if (polygon_offset)
                 glEnable(GL_POLYGON_OFFSET_FILL);
 
-
         glPolygonOffset(1.0, 1.0);
         // glutSolidCube(2.0);
-		glutSolidTeapot(2.0);
+        
+
+        glBegin(GL_POLYGON);
+                float x1 =  1.0; float y1 =  1.0;
+                float x2 = -1.0; float y2 = -1.0;
+                float z1 =  1.0;
+                //Rectangle
+                glVertex3f(0.0f, 0.0f, -2.0f);
+                glVertex3f(x1, y1, z1);
+                glVertex3f(x2, y1, z1);
+                glVertex3f(x2, y2, z1);
+                glVertex3f(x1, y2, z1);
+                
+                glVertex3f(x1,y1,z1);
+        glEnd();
+
+        glBegin(GL_POLYGON);
+                glVertex3f(x1, y1, z1);
+                glVertex3f(x2, y1, z1);
+                glVertex3f(x2, y2, z1);
+                glVertex3f(x1, y2, z1);
+        glEnd();
+
+        //glutWireDodecahedron();
         glColor3fv(Black);
-        // glutWireCube(2.0);
+        //glutWireCube(2.0);
         if (polygon_offset)
                 glDisable(GL_POLYGON_OFFSET_FILL);
 
-
         // skierowanie poleceń do wykonania
         glFlush();
-
 
         // zamiana buforów koloru
         glutSwapBuffers();
 }
 
-
 // zmiana wielkości okna
-
 
 void Reshape(int width, int height)
 {
         // obszar renderingu - całe okno
         glViewport(0, 0, width, height);
 
-
         // wybór macierzy rzutowania
         glMatrixMode(GL_PROJECTION);
-
 
         // macierz rzutowania = macierz jednostkowa
         glLoadIdentity();
 
-
         // parametry bryły obcinania
         glFrustum(left, right, bottom, top, near_, far_);
-
 
         // generowanie sceny 3D
         Display();
 }
 
-
 // obsługa klawiszy funkcyjnych i klawiszy kursora
-
 
 void SpecialKeys(int key, int x, int y)
 {
@@ -264,18 +256,15 @@ void SpecialKeys(int key, int x, int y)
                 rotatey -= 1;
                 break;
 
-
                 // kursor w górę
         case GLUT_KEY_UP:
                 rotatex -= 1;
                 break;
 
-
                 // kursor w prawo
         case GLUT_KEY_RIGHT:
                 rotatey += 1;
                 break;
-
 
                 // kursor w dół
         case GLUT_KEY_DOWN:
@@ -283,14 +272,11 @@ void SpecialKeys(int key, int x, int y)
                 break;
         }
 
-
         // odrysowanie okna
         Reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
 }
 
-
 // obsługa przycisków myszki
-
 
 void MouseButton(int button, int state, int x, int y)
 {
@@ -298,7 +284,6 @@ void MouseButton(int button, int state, int x, int y)
         {
                 // zapamiętanie stanu lewego przycisku myszki
                 button_state = state;
-
 
                 // zapamiętanie położenia kursora myszki
                 if (state == GLUT_DOWN)
@@ -309,25 +294,21 @@ void MouseButton(int button, int state, int x, int y)
         }
 }
 
-
 // obsługa ruchu kursora myszki
-
 
 void MouseMotion(int x, int y)
 {
         if (button_state == GLUT_DOWN)
         {
-                rotatey += 30 * (right - left) / glutGet(GLUT_WINDOW_WIDTH) *(x - button_x);
+                rotatey += 30 * (right - left) / glutGet(GLUT_WINDOW_WIDTH) * (x - button_x);
                 button_x = x;
-                rotatex -= 30 * (top - bottom) / glutGet(GLUT_WINDOW_HEIGHT) *(button_y - y);
+                rotatex -= 30 * (top - bottom) / glutGet(GLUT_WINDOW_HEIGHT) * (button_y - y);
                 button_y = y;
                 glutPostRedisplay();
         }
 }
 
-
 // obsługa menu podręcznego
-
 
 void Menu(int value)
 {
@@ -339,13 +320,11 @@ void Menu(int value)
                 Display();
                 break;
 
-
                 // przesunięcie wartości głębi
         case POLYGON_OFFSET:
                 polygon_offset = !polygon_offset;
                 Display();
                 break;
-
 
                 // wyjście
         case EXIT:
@@ -353,73 +332,57 @@ void Menu(int value)
         }
 }
 
-
-int main(int argc, char * argv[])
+int main(int argc, char *argv[])
 {
         // inicjalizacja biblioteki GLUT
         glutInit(&argc, argv);
 
-
         // inicjalizacja bufora ramki
         glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-
 
         // rozmiary głównego okna programu
         glutInitWindowSize(500, 500);
 
-
         // utworzenie głównego okna programu
         glutCreateWindow("Z-bufor");
-
 
         // dołączenie funkcji generującej scenę 3D
         glutDisplayFunc(Display);
 
-
         // dołączenie funkcji wywoływanej przy zmianie rozmiaru okna
         glutReshapeFunc(Reshape);
-
 
         // dołączenie funkcji obsługi klawiszy funkcyjnych i klawiszy kursora
         glutSpecialFunc(SpecialKeys);
 
-
         // obsługa przycisków myszki
         glutMouseFunc(MouseButton);
-
 
         // obsługa ruchu kursora myszki
         glutMotionFunc(MouseMotion);
 
-
         // utworzenie menu podręcznego
         glutCreateMenu(Menu);
-
 
         // menu główne
         glutCreateMenu(Menu);
 #ifdef WIN32
-
 
         glutAddMenuEntry("Płaszczyzna przekroju: rysowana/nierysowana", CUTTING_PLANE);
         glutAddMenuEntry("Przesunięcie wartości głębi: włącz/wyłącz", POLYGON_OFFSET);
         glutAddMenuEntry("Wyjście", EXIT);
 #else
 
-
         glutAddMenuEntry("Plaszczyzna przekroju: rysowana/nierysowana", CUTTING_PLANE);
         glutAddMenuEntry("Przesuniecie wartosci glebi: wlacz/wylacz", POLYGON_OFFSET);
         glutAddMenuEntry("Wyjscie", EXIT);
 #endif
 
-
         // określenie przycisku myszki obsługującej menu podręczne
         glutAttachMenu(GLUT_RIGHT_BUTTON);
 
-
         // dołączenie funkcji wywoływanej podczas "bezczynności" systemu
         glutIdleFunc(Display);
-
 
         // wprowadzenie programu do obsługi pętli komunikatów
         glutMainLoop();
