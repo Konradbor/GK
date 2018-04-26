@@ -61,24 +61,8 @@ int button_x, button_y;
 
 void Cube3x3()
 {
-	/*glutWireCube(1.0);
-	glTranslatef(1.0, 0.0, 0.0);
-	glutWireCube(1.0);
-	glTranslatef(0.0, -1.0, 0.0);
-	glutWireCube(1.0);
-	glTranslatef(-1.0, 0.0, 0.0);
-	glutWireCube(1.0);
-	glTranslatef(-1.0, 0.0, 0.0);
-	glutWireCube(1.0);
-	glTranslatef(0.0, 1.0, 0.0);
-	glutWireCube(1.0);
-	glTranslatef(0.0, 1.0, 0.0);
-	glutWireCube(1.0);
-	glTranslatef(1.0, 0.0, 0.0);
-	glutWireCube(1.0);
-	glTranslatef(1.0, 0.0, 0.0);
-	glutWireCube(1.0);*/
-	auto distance = 3.25;
+	
+	float distance = 3.25;
 	glutWireDodecahedron();
 	glTranslatef(distance, 0.0, 0.0);
 	glutWireDodecahedron();
@@ -102,7 +86,7 @@ void Cube3x3()
 
 void Cube2x2()
 {
-	auto distance = 3.25;
+	float distance = 3.25;
 	glutWireDodecahedron();
 	glTranslatef(distance, 0.0, 0.0);
 	glutWireDodecahedron();
@@ -116,7 +100,8 @@ void Cube2x2()
 
 void Pyramid()
 {
-	auto distanceFundament = 3.25;
+	float distance = 3.25;
+	float distanceFundament = 3.25;
 	// podstawa 6x6
 	glPushMatrix();
 	glTranslatef(distanceFundament, distanceFundament, 0.0);
@@ -136,7 +121,7 @@ void Pyramid()
 	glPopMatrix();
 
 	// drugi poziom 5x5
-
+ 	
 	glPushMatrix();
 	glTranslatef(0.0, 0.0, distanceFundament);
 	glPushMatrix();
@@ -158,25 +143,25 @@ void Pyramid()
 	glPopMatrix();
 
 	//// trzeci poziom 4x4
-	//glPushMatrix();
-	//glTranslatef(0.0, 0.0, 2.0);
-	//glPushMatrix();
-	//glTranslatef(0.5, -0.5, 0.0);
-	//Cube2x2();
-	//glPopMatrix();
-	//glPushMatrix();
-	//glTranslatef(0.5, 1.5, 0.0);
-	//Cube2x2();
-	//glPopMatrix();
-	//glPushMatrix();
-	//glTranslatef(-1.5, 1.5, 0.0);
-	//Cube2x2();
-	//glPopMatrix();
-	//glPushMatrix();
-	//glTranslatef(-1.5, -0.5, 0.0);
-	//Cube2x2();
-	//glPopMatrix();
-	//glPopMatrix();
+	/*glPushMatrix();
+	glTranslatef(0.0, 0.0, 2.0);
+	glPushMatrix();
+	glTranslatef(0.5, -0.5, 0.0);
+	Cube2x2();
+	glPopMatrix();
+	glPushMatrix();
+	glTranslatef(0.5, 1.5, 0.0);
+	Cube2x2();
+	glPopMatrix();
+	glPushMatrix();
+	glTranslatef(-1.5, 1.5, 0.0);
+	Cube2x2();
+	glPopMatrix();
+	glPushMatrix();
+	glTranslatef(-1.5, -0.5, 0.0);
+	Cube2x2();
+	glPopMatrix();
+	glPopMatrix();*/
 
 	//// czwarty poziom 3x3
 	//glPushMatrix();
