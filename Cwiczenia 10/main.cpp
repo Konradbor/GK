@@ -16,6 +16,7 @@ JanuszG@enter.net.pl
 #include <stdio.h>
 #include "colors.h"
 #include "materials.h"
+#include <string.h>
 
 // wskaźnik na funkcję glWindowPos2i
 
@@ -150,7 +151,7 @@ bool GLU_1_3 = false;
 #define GLU_OBJECT_PARAMETRIC_ERROR        100208
 #endif
 
-#ifndef GLU_OBJECT_PATH_LENGTH             100209
+#ifndef GLU_OBJECT_PATH_LENGTH             //100209
 #define GLU_OBJECT_PATH_LENGTH             100209
 #endif
 
@@ -292,7 +293,7 @@ void DisplayScene()
     
     // metoda podziału powierzchni NURBS na wielokąty
     if( sampling_method == GLU_PATH_LENGTH )
-         DrawString( 2, 2, "GLU_SAMPLING_METHOD = GLU_PATH_LENGTH" );
+         DrawString( 2, 2, "GLU_SAMPLING_METHOD = GLU_PATH_LENGTH");
     else
     if( sampling_method == GLU_PARAMETRIC_ERROR )
          DrawString( 2, 2, "GLU_SAMPLING_METHOD = GLU_PARAMETRIC_ERROR" );
@@ -654,7 +655,7 @@ void ExtensionSetup()
     if( major > 1 || minor >= 4 )
     {
         // pobranie wskaźnika wybranej funkcji OpenGL 1.4
-        glWindowPos2i =( PFNGLWINDOWPOS2IPROC ) wglGetProcAddress( "glWindowPos2i" );
+        glWindowPos2i =( PFNGLWINDOWPOS2IPROC ) wglGetProcAddress((const GLubyte *) "glWindowPos2i" );
     }
     else
     // sprawdzenie czy jest obsługiwane rozszerzenie ARB_window_pos
@@ -662,7 +663,7 @@ void ExtensionSetup()
     {
         // pobranie wskaźnika wybranej funkcji rozszerzenia ARB_window_pos
         glWindowPos2i =( PFNGLWINDOWPOS2IPROC ) wglGetProcAddress
-        ( "glWindowPos2iARB" );
+        ( (const GLubyte *)"glWindowPos2iARB" );
     }
     else
     {
