@@ -197,7 +197,7 @@ GLuint genBezier(BEZIER_PATCH patch, int divs)
 
 	POINT_3D *last = (POINT_3D *)malloc(sizeof(POINT_3D) * (divs + 1));
 
-	if (patch.dlBPatch != NULL)
+	if (patch.dlBPatch != 0)
 
 		glDeleteLists(patch.dlBPatch, 1);
 
@@ -299,7 +299,7 @@ void initBezier(void)
 
 	mybezier.anchors[3][3] = makePoint(0.75, 0.75, -0.50);
 
-	mybezier.dlBPatch = NULL;
+	mybezier.dlBPatch = 0;
 }
 
 int InitGL(GLvoid)
@@ -327,12 +327,12 @@ int InitGL(GLvoid)
 	GLsizei width_texture, height_texture; // zmienne użyte przy obsłudze plików TARGA
 	GLenum format, type;
 	GLvoid *Ptr_mybezier_texture;
-	GLboolean error = load_targa("water_plain_sea_4_20131007_1254588998.tga", width_texture, height_texture, format, type, Ptr_mybezier_texture);
+	GLboolean error = load_targa("water_plain_sea.tga", width_texture, height_texture, format, type, Ptr_mybezier_texture);
 
 	// błąd odczytu pliku
 	if (error == GL_FALSE)
 	{
-		printf("Niepoprawny odczyt pliku mar0kuu2.tga");
+		printf("Niepoprawny odczyt pliku water_plain_sea.tga");
 		exit(0);
 	}
 
@@ -348,7 +348,7 @@ int InitGL(GLvoid)
 	mybezier.dlBPatch = genBezier(mybezier, divs);
 
 	// porządki
-	delete[](GLvoid *) Ptr_mybezier_texture;
+	//delete[](GLvoid *) Ptr_mybezier_texture;
 
 	return true;
 }
@@ -378,7 +378,7 @@ void DrawGLScene(GLvoid)
 
 	glCallList(mybezier.dlBPatch);
 
-	bool showCPoint = true;
+	//bool showCPoint = true;
 	if (showCPoints)
 	{
 
@@ -485,6 +485,11 @@ void Keyboard(unsigned char key, int x, int y)
 	DrawGLScene();
 }
 
+void Menu(int input)
+{
+
+}
+
 int main(int argc, char *argv[])
 {
 	// inicjalizacja biblioteki GLUT
@@ -516,6 +521,12 @@ int main(int argc, char *argv[])
 
 	// obsługa ruchu kursora myszki
 	glutMotionFunc(MouseMotion);
+	
+	glutCreateMenu(Menu);
+	{
+		glutAddSubMenu("Tekstury")
+		glutAddMenuEntry("Tekstury")
+	}
 
 	InitGL();
 
@@ -523,7 +534,7 @@ int main(int argc, char *argv[])
 	glutMainLoop();
 
 	// porządki
-	delete[](GLvoid *) mybezier.texture;
+	//delete[](GLvoid *) mybezier.texture;
 
 	return 0;
 }
