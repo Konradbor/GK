@@ -1,4 +1,3 @@
-﻿
 #ifndef __glext_h_
 #define __glext_h_ 1
 
@@ -3602,8 +3601,7 @@ extern "C" {
 	typedef void (APIENTRYP PFNGLMULTIDRAWARRAYSINDIRECTCOUNTARBPROC) (GLenum mode, GLintptr indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride);
 	typedef void (APIENTRYP PFNGLMULTIDRAWELEMENTSINDIRECTCOUNTARBPROC) (GLenum mode, GLenum type, GLintptr indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride);
 #ifdef GL_GLEXT_PROTOTYPES
-	GLAPI void APIENTRY glMultiDrawArraysInd
-		irectCountARB(GLenum mode, GLintptr indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride);
+	GLAPI void APIENTRY glMultiDrawArraysIndirectCountARB(GLenum mode, GLintptr indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride);
 	GLAPI void APIENTRY glMultiDrawElementsIndirectCountARB(GLenum mode, GLenum type, GLintptr indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride);
 #endif
 #endif /* GL_ARB_indirect_parameters */
@@ -7327,8 +7325,7 @@ extern "C" {
 	GLAPI void APIENTRY glFramebufferTexture2DEXT(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
 	GLAPI void APIENTRY glFramebufferTexture3DEXT(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset);
 	GLAPI void APIENTRY glFramebufferRenderbufferEXT(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
-	GLAPI void APIENTRY glGetFramebufferAttachmentPa
-		rameterivEXT(GLenum target, GLenum attachment, GLenum pname, GLint *params);
+	GLAPI void APIENTRY glGetFramebufferAttachmentParameterivEXT(GLenum target, GLenum attachment, GLenum pname, GLint *params);
 	GLAPI void APIENTRY glGenerateMipmapEXT(GLenum target);
 #endif
 #endif /* GL_EXT_framebuffer_object */
@@ -11652,26 +11649,25 @@ extern "C" {
 #define GL_PIXEL_TILE_CACHE_SIZE_SGIX     0x8145
 #endif /* GL_SGIX_pixel_tiles */
 
-//#if
-//	ndef GL_SGIX_polynomial_ffd
-//#define GL_SGIX_polynomial_ffd 1
-//#define GL_TEXTURE_DEFORMATION_BIT_SGIX   0x00000001
-//#define GL_GEOMETRY_DEFORMATION_BIT_SGIX  0x00000002
-//#define GL_GEOMETRY_DEFORMATION_SGIX      0x8194
-//#define GL_TEXTURE_DEFORMATION_SGIX       0x8195
-//#define GL_DEFORMATIONS_MASK_SGIX         0x8196
-//#define GL_MAX_DEFORMATION_ORDER_SGIX     0x8197
-//		typedef void (APIENTRYP PFNGLDEFORMATIONMAP3DSGIXPROC) (GLenum target, GLdouble u1, GLdouble u2, GLint ustride, GLint uorder, GLdouble v1, GLdouble v2, GLint vstride, GLint vorder, GLdouble w1, GLdouble w2, GLint wstride, GLint worder, const GLdouble *points);
-//	typedef void (APIENTRYP PFNGLDEFORMATIONMAP3FSGIXPROC) (GLenum target, GLfloat u1, GLfloat u2, GLint ustride, GLint uorder, GLfloat v1, GLfloat v2, GLint vstride, GLint vorder, GLfloat w1, GLfloat w2, GLint wstride, GLint worder, const GLfloat *points);
-//	typedef void (APIENTRYP PFNGLDEFORMSGIXPROC) (GLbitfield mask);
-//	typedef void (APIENTRYP PFNGLLOADIDENTITYDEFORMATIONMAPSGIXPROC) (GLbitfield mask);
-//#ifdef GL_GLEXT_PROTOTYPES
-//	GLAPI void APIENTRY glDeformationMap3dSGIX(GLenum target, GLdouble u1, GLdouble u2, GLint ustride, GLint uorder, GLdouble v1, GLdouble v2, GLint vstride, GLint vorder, GLdouble w1, GLdouble w2, GLint wstride, GLint worder, const GLdouble *points);
-//	GLAPI void APIENTRY glDeformationMap3fSGIX(GLenum target, GLfloat u1, GLfloat u2, GLint ustride, GLint uorder, GLfloat v1, GLfloat v2, GLint vstride, GLint vorder, GLfloat w1, GLfloat w2, GLint wstride, GLint worder, const GLfloat *points);
-//	GLAPI void APIENTRY glDeformSGIX(GLbitfield mask);
-//	GLAPI void APIENTRY glLoadIdentityDeformationMapSGIX(GLbitfield mask);
-//#endif
-//#endif /* GL_SGIX_polynomial_ffd */
+#ifndef GL_SGIX_polynomial_ffd
+#define GL_SGIX_polynomial_ffd 1
+#define GL_TEXTURE_DEFORMATION_BIT_SGIX   0x00000001
+#define GL_GEOMETRY_DEFORMATION_BIT_SGIX  0x00000002
+#define GL_GEOMETRY_DEFORMATION_SGIX      0x8194
+#define GL_TEXTURE_DEFORMATION_SGIX       0x8195
+#define GL_DEFORMATIONS_MASK_SGIX         0x8196
+#define GL_MAX_DEFORMATION_ORDER_SGIX     0x8197
+	typedef void (APIENTRYP PFNGLDEFORMATIONMAP3DSGIXPROC) (GLenum target, GLdouble u1, GLdouble u2, GLint ustride, GLint uorder, GLdouble v1, GLdouble v2, GLint vstride, GLint vorder, GLdouble w1, GLdouble w2, GLint wstride, GLint worder, const GLdouble *points);
+	typedef void (APIENTRYP PFNGLDEFORMATIONMAP3FSGIXPROC) (GLenum target, GLfloat u1, GLfloat u2, GLint ustride, GLint uorder, GLfloat v1, GLfloat v2, GLint vstride, GLint vorder, GLfloat w1, GLfloat w2, GLint wstride, GLint worder, const GLfloat *points);
+	typedef void (APIENTRYP PFNGLDEFORMSGIXPROC) (GLbitfield mask);
+	typedef void (APIENTRYP PFNGLLOADIDENTITYDEFORMATIONMAPSGIXPROC) (GLbitfield mask);
+#ifdef GL_GLEXT_PROTOTYPES
+	GLAPI void APIENTRY glDeformationMap3dSGIX(GLenum target, GLdouble u1, GLdouble u2, GLint ustride, GLint uorder, GLdouble v1, GLdouble v2, GLint vstride, GLint vorder, GLdouble w1, GLdouble w2, GLint wstride, GLint worder, const GLdouble *points);
+	GLAPI void APIENTRY glDeformationMap3fSGIX(GLenum target, GLfloat u1, GLfloat u2, GLint ustride, GLint uorder, GLfloat v1, GLfloat v2, GLint vstride, GLint vorder, GLfloat w1, GLfloat w2, GLint wstride, GLint worder, const GLfloat *points);
+	GLAPI void APIENTRY glDeformSGIX(GLbitfield mask);
+	GLAPI void APIENTRY glLoadIdentityDeformationMapSGIX(GLbitfield mask);
+#endif
+#endif /* GL_SGIX_polynomial_ffd */
 
 #ifndef GL_SGIX_reference_plane
 #define GL_SGIX_reference_plane 1

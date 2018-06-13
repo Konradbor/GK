@@ -1,12 +1,7 @@
-/*
-(c) Janusz Ganczarski
-http://www.januszg.hg.pl
-JanuszG@enter.net.pl
-*/
-
+//#include "stdafx.h"
 #include <GL/glut.h>
 #include <GL/glu.h>
-#include <GL/glext.h>
+#include "glext.h"
 #ifndef WIN32
 #define GLX_GLXEXT_LEGACY
 #include <GL/glx.h>
@@ -16,47 +11,42 @@ JanuszG@enter.net.pl
 #include <stdio.h>
 #include "colors.h"
 #include "materials.h"
-#include <string.h>
 #include "targa.h"
+#include <string.h>
 
 // wskaźnik na funkcję glWindowPos2i
 
-PFNGLWINDOWPOS2IPROC glWindowPos2i = NULL;
+//PFNGLWINDOWPOS2IPROC glRasterPos2i = NULL;
 
 // stałe do obsługi menu podręcznego
 
 enum
 {
-	HOLE, // dziura
-
 	// materiały
-	BRASS,			 // mosiądz
-	BRONZE,			 // brąz
+	BRASS, // mosiądz
+	BRONZE, // brąz
 	POLISHED_BRONZE, // polerowany brąz
-	CHROME,			 // chrom
-	COPPER,			 // miedź
+	CHROME, // chrom
+	COPPER, // miedź
 	POLISHED_COPPER, // polerowana miedź
-	GOLD,			 // złoto
-	POLISHED_GOLD,   // polerowane złoto
-	PEWTER,			 // grafit (cyna z ołowiem)
-	SILVER,			 // srebro
+	GOLD, // złoto
+	POLISHED_GOLD, // polerowane złoto
+	PEWTER, // grafit (cyna z ołowiem)
+	SILVER, // srebro
 	POLISHED_SILVER, // polerowane srebro
-	EMERALD,		 // szmaragd
-	JADE,			 // jadeit
-	OBSIDIAN,		 // obsydian
-	PEARL,			 // perła
-	RUBY,			 // rubin
-	TURQUOISE,		 // turkus
-	BLACK_PLASTIC,   // czarny plastik
-	BLACK_RUBBER,	// czarna guma
+	EMERALD, // szmaragd
+	JADE, // jadeit
+	OBSIDIAN, // obsydian
+	PEARL, // perła
+	RUBY, // rubin
+	TURQUOISE, // turkus
+	BLACK_PLASTIC, // czarny plastik
+	BLACK_RUBBER, // czarna guma
 
-	//tekstury
-	TREE,
-
-	// obszar renderingu
-	FULL_WINDOW, // aspekt obrazu - całe okno
-	ASPECT_1_1,  // aspekt obrazu 1:1
-	EXIT		 // wyjście
+				  // obszar renderingu
+				  FULL_WINDOW, // aspekt obrazu - całe okno
+				  ASPECT_1_1, // aspekt obrazu 1:1
+				  EXIT // wyjście
 };
 
 // aspekt obrazu
@@ -100,9 +90,9 @@ GLfloat scale = 1.0;
 
 // właściwości materiału - domyślnie mosiądz
 
-const GLfloat *ambient = BrassAmbient;
-const GLfloat *diffuse = BrassDiffuse;
-const GLfloat *specular = BrassSpecular;
+const GLfloat * ambient = BrassAmbient;
+const GLfloat * diffuse = BrassDiffuse;
+const GLfloat * specular = BrassSpecular;
 GLfloat shininess = BrassShininess;
 
 // metoda podziału powierzchni NURBS na wielokąty
@@ -116,33 +106,19 @@ int display_mode = GLU_FILL;
 // współrzędne punktów kontrolnych powierzchni
 
 GLfloat points[4 * 4 * 3] =
-	{
-		-1.0, -1.0, 0.0, -1.0, -0.5, 0.0, -1.0, 0.5, 0.0, -1.0, 1.0, 0.0,
-		-0.5, -1.0, 0.0, -0.5, -0.5, 1.5, -0.5, 0.5, 1.5, -0.5, 1.0, 0.0,
-		0.5, -1.0, 0.0, 0.5, -0.5, 1.5, 0.5, 0.5, 1.5, 0.5, 1.0, 0.0,
-		1.0, -1.0, 0.0, 1.0, -0.5, 0.0, 1.0, 0.5, 0.0, 1.0, 1.0, 0.0};
-points =
-	{
-
-}
+{
+	-0.5, -0.15, 0.0,		-0.5, 0.8, 0.0,			0.5, -0.35, 0.0,	 -0.5, -0.15, 0.0,
+	-0.1, 0.0, 0.5,			-0.5, 0.3, 0.5,			-0.7, -0.3, 0.5,	 -0.1, 0.0, 0.5,
+	-0.5, 0.0, 1.0,			-0.5, 0.6, 1.0,			0.5, 0.6, 1.0,		 -0.5, 0.0, 1.0,
+	-0.6, -0.05, 1.5,		-0.2, 1.4, 1.5,			0.7, -0.8, 1.5,		 -0.6, -0.05, 1.5,
+};
 
 // węzły
 
 GLfloat knots[4 * 2] =
-	{
-		0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0};
-
-// współrzędne zewnętrznej krzywej PWL
-
-GLfloat outline_pwl[10] =
-	{
-		0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0};
-
-// współrzędne krzywej PWL opisującej wycinany fragment powierzchni
-
-GLfloat hole_pwl[10] =
-	{
-		0.25, 0.25, 0.25, 0.75, 0.75, 0.75, 0.75, 0.25, 0.25, 0.25};
+{
+	0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0
+};
 
 // znacznik dostępności biblioteki GLU w wersji 1.3
 
@@ -151,57 +127,27 @@ bool GLU_1_3 = false;
 // definicje metod podziału powierzchni NURBS na
 // wielokąty wprowadzone w wersji 1.3 biblioteki GLU
 
-#ifndef GLU_OBJECT_PARAMETRIC_ERROR
-#define GLU_OBJECT_PARAMETRIC_ERROR 100208
+#ifndef  GLU_OBJECT_PARAMETRIC_ERROR
+#define GLU_OBJECT_PARAMETRIC_ERROR        100208
 #endif
 
-#ifndef GLU_OBJECT_PATH_LENGTH //100209
-#define GLU_OBJECT_PATH_LENGTH 100209
+#ifndef GLU_OBJECT_PATH_LENGTH             100209
+#define GLU_OBJECT_PATH_LENGTH             100209
 #endif
-
-// znacznik czy wycinać fragment powierzchni NURBS
-
-bool hole = false;
 
 // funkcja rysująca napis w wybranym miejscu
 // (wersja korzystająca z funkcji glWindowPos2i)
 
-GLuint TREE;
-
-void DrawString(GLint x, GLint y, char *string)
+void DrawString(GLint x, GLint y, const char * string)
 {
 	// położenie napisu
-	glWindowPos2i(x, y);
+	glRasterPos2i(x, y);
 
 	// wyświetlenie napisu
 	int len = strlen(string);
 	for (int i = 0; i < len; i++)
 		glutBitmapCharacter(GLUT_BITMAP_9_BY_15, string[i]);
-}
 
-void GenerateTextures()
-{
-	GLsizei width, height;
-	GLenum format, type;
-	GLvoid *pixels; // wczytanie tekstury branch.tga
-
-	GLboolean error = load_targa("hackberry_tree.tga", width, height, format, type, pixels);
-	// błąd odczytu pliku
-	if (error == GL_FALSE)
-	{
-		printf("Niepoprawny odczyt pliku branch.tga");
-		exit(0);
-	}
-	// utworzenie identyfikatora tekstury
-	glGenTextures(1, &TREE);
-	// dowiązanie stanu tekstury
-	glBindTexture(GL_TEXTURE_2D, TREE);
-	// włączenie automatycznego generowania mipmap
-	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-	// definiowanie tekstury (z mipmapami)
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, format, type, pixels);
-	// porządki
-	delete[](unsigned char *) pixels;
 }
 
 // funkcja generująca scenę 3D
@@ -233,9 +179,10 @@ void DisplayScene()
 	// skalowanie obiektu - klawisze "+" i "-"
 	glScalef(scale, scale, scale);
 
-	// włączenie efektów oświetlenia, gry renderowana jest wypełniona powierzchnia
 	if (display_mode == GLU_FILL)
 	{
+		// włączenie efektów oświetlenia, gry renderowana jest wypełniona powierzchnia
+
 		// włączenie oświetlenia
 		glEnable(GL_LIGHTING);
 
@@ -255,11 +202,12 @@ void DisplayScene()
 		glEnable(GL_AUTO_NORMAL);
 	}
 
+
 	// kolor krawędzi
 	glColor3fv(Black);
 
 	// utworzenie obiektu NURBS
-	GLUnurbsObj *nurbs = gluNewNurbsRenderer();
+	GLUnurbsObj * nurbs = gluNewNurbsRenderer();
 
 	// początek definicji powierzchni NURBS
 	gluBeginSurface(nurbs);
@@ -271,21 +219,7 @@ void DisplayScene()
 	gluNurbsProperty(nurbs, GLU_SAMPLING_METHOD, sampling_method);
 
 	// narysowanie powierzchni
-	// gluNurbsSurface( nurbs, 8, knots, 8, knots, 4 * 3, 3, points, 4, 4, GL_MAP2_VERTEX_3 );
-	gluNurbsSurface(nurbs, )
-		// rysowanie dziury w powierzchni NURBS
-		if (hole)
-	{
-		// zewnętrzna krzywa wycinająca
-		gluBeginTrim(nurbs);
-		gluPwlCurve(nurbs, 5, outline_pwl, 2, GLU_MAP1_TRIM_2);
-		gluEndTrim(nurbs);
-
-		// wewnętrzna krzywa wycinająca
-		gluBeginTrim(nurbs);
-		gluPwlCurve(nurbs, 5, hole_pwl, 2, GLU_MAP1_TRIM_2);
-		gluEndTrim(nurbs);
-	}
+	gluNurbsSurface(nurbs, 8, knots, 8, knots, 4 * 3, 3, points, 4, 4, GL_MAP2_VERTEX_3);
 
 	// koniec definicji powierzchni
 	gluEndSurface(nurbs);
@@ -324,27 +258,33 @@ void DisplayScene()
 	// metoda podziału powierzchni NURBS na wielokąty
 	if (sampling_method == GLU_PATH_LENGTH)
 		DrawString(2, 2, "GLU_SAMPLING_METHOD = GLU_PATH_LENGTH");
-	else if (sampling_method == GLU_PARAMETRIC_ERROR)
-		DrawString(2, 2, "GLU_SAMPLING_METHOD = GLU_PARAMETRIC_ERROR");
-	else if (sampling_method == GLU_DOMAIN_DISTANCE)
-		DrawString(2, 2, "GLU_SAMPLING_METHOD = GLU_DOMAIN_DISTANCE");
+	else
+		if (sampling_method == GLU_PARAMETRIC_ERROR)
+			DrawString(2, 2, "GLU_SAMPLING_METHOD = GLU_PARAMETRIC_ERROR");
+		else
+			if (sampling_method == GLU_DOMAIN_DISTANCE)
+				DrawString(2, 2, "GLU_SAMPLING_METHOD = GLU_DOMAIN_DISTANCE");
 
 	// metody podziału wprowadzone w wersji 1.3 biblioteki GLU
 	if (GLU_1_3)
 	{
 		if (sampling_method == GLU_OBJECT_PARAMETRIC_ERROR)
 			DrawString(2, 2, "GLU_SAMPLING_METHOD = GLU_OBJECT_PARAMETRIC_ERROR");
-		else if (sampling_method == GLU_OBJECT_PATH_LENGTH)
-			DrawString(2, 2, "GLU_SAMPLING_METHOD = GLU_OBJECT_PATH_LENGTH");
+		else
+			if (sampling_method == GLU_OBJECT_PATH_LENGTH)
+				DrawString(2, 2, "GLU_SAMPLING_METHOD = GLU_OBJECT_PATH_LENGTH");
+
 	}
 
 	// sposób renderowania powierzchni NURBS
 	if (display_mode == GLU_FILL)
 		DrawString(2, 16, "GLU_DISPLAY_MODE = GLU_FILL");
-	else if (display_mode == GLU_OUTLINE_PATCH)
-		DrawString(2, 16, "GLU_DISPLAY_MODE = GLU_OUTLINE_PATCH");
-	else if (display_mode == GLU_OUTLINE_POLYGON)
-		DrawString(2, 16, "GLU_DISPLAY_MODE = GLU_OUTLINE_POLYGON");
+	else
+		if (display_mode == GLU_OUTLINE_PATCH)
+			DrawString(2, 16, "GLU_DISPLAY_MODE = GLU_OUTLINE_PATCH");
+		else
+			if (display_mode == GLU_OUTLINE_POLYGON)
+				DrawString(2, 16, "GLU_DISPLAY_MODE = GLU_OUTLINE_POLYGON");
 
 	// skierowanie poleceń do wykonania
 	glFlush();
@@ -376,7 +316,8 @@ void Reshape(int width, int height)
 
 			// szerokość okna większa lub równa wysokości okna
 			if (width >= height && height > 0)
-			glFrustum(left * width / height, right * width / height, bottom, top, near, far);
+				glFrustum(left * width / height, right * width / height, bottom, top, near, far);
+
 	}
 	else
 		glFrustum(left, right, bottom, top, near, far);
@@ -396,7 +337,7 @@ void Keyboard(unsigned char key, int x, int y)
 
 		// klawisz -
 		if (key == '-' && scale > 0.05)
-		scale -= 0.05;
+			scale -= 0.05;
 
 	// narysowanie sceny
 	DisplayScene();
@@ -426,9 +367,9 @@ void MouseMotion(int x, int y)
 {
 	if (button_state == GLUT_DOWN)
 	{
-		rotatey += 30 * (right - left) / glutGet(GLUT_WINDOW_WIDTH) * (x - button_x);
+		rotatey += 30 * (right - left) / glutGet(GLUT_WINDOW_WIDTH) *(x - button_x);
 		button_x = x;
-		rotatex -= 30 * (top - bottom) / glutGet(GLUT_WINDOW_HEIGHT) * (button_y - y);
+		rotatex -= 30 * (top - bottom) / glutGet(GLUT_WINDOW_HEIGHT) *(button_y - y);
 		button_y = y;
 		glutPostRedisplay();
 	}
@@ -440,7 +381,7 @@ void Menu(int value)
 {
 	switch (value)
 	{
-	// GLU_DISPLAY_MODE
+		// GLU_DISPLAY_MODE
 	case GLU_FILL:
 	case GLU_OUTLINE_PATCH:
 	case GLU_OUTLINE_POLYGON:
@@ -448,7 +389,7 @@ void Menu(int value)
 		DisplayScene();
 		break;
 
-	// GLU_SAMPLING_METHOD
+		// GLU_SAMPLING_METHOD
 	case GLU_PATH_LENGTH:
 	case GLU_PARAMETRIC_ERROR:
 	case GLU_DOMAIN_DISTANCE:
@@ -458,13 +399,7 @@ void Menu(int value)
 		DisplayScene();
 		break;
 
-	// dziura włącz/wyłącz
-	case HOLE:
-		hole = !hole;
-		DisplayScene();
-		break;
-
-	// materiał - mosiądz
+		// materiał - mosiądz
 	case BRASS:
 		ambient = BrassAmbient;
 		diffuse = BrassDiffuse;
@@ -473,7 +408,7 @@ void Menu(int value)
 		DisplayScene();
 		break;
 
-	// materiał - brąz
+		// materiał - brąz
 	case BRONZE:
 		ambient = BronzeAmbient;
 		diffuse = BronzeDiffuse;
@@ -482,7 +417,7 @@ void Menu(int value)
 		DisplayScene();
 		break;
 
-	// materiał - polerowany brąz
+		// materiał - polerowany brąz
 	case POLISHED_BRONZE:
 		ambient = PolishedBronzeAmbient;
 		diffuse = PolishedBronzeDiffuse;
@@ -491,7 +426,7 @@ void Menu(int value)
 		DisplayScene();
 		break;
 
-	// materiał - chrom
+		// materiał - chrom
 	case CHROME:
 		ambient = ChromeAmbient;
 		diffuse = ChromeDiffuse;
@@ -500,7 +435,7 @@ void Menu(int value)
 		DisplayScene();
 		break;
 
-	// materiał - miedź
+		// materiał - miedź
 	case COPPER:
 		ambient = CopperAmbient;
 		diffuse = CopperDiffuse;
@@ -509,7 +444,7 @@ void Menu(int value)
 		DisplayScene();
 		break;
 
-	// materiał - polerowana miedź
+		// materiał - polerowana miedź
 	case POLISHED_COPPER:
 		ambient = PolishedCopperAmbient;
 		diffuse = PolishedCopperDiffuse;
@@ -518,7 +453,7 @@ void Menu(int value)
 		DisplayScene();
 		break;
 
-	// materiał - złoto
+		// materiał - złoto
 	case GOLD:
 		ambient = GoldAmbient;
 		diffuse = GoldDiffuse;
@@ -527,7 +462,7 @@ void Menu(int value)
 		DisplayScene();
 		break;
 
-	// materiał - polerowane złoto
+		// materiał - polerowane złoto
 	case POLISHED_GOLD:
 		ambient = PolishedGoldAmbient;
 		diffuse = PolishedGoldDiffuse;
@@ -536,7 +471,7 @@ void Menu(int value)
 		DisplayScene();
 		break;
 
-	// materiał - grafit (cyna z ołowiem)
+		// materiał - grafit (cyna z ołowiem)
 	case PEWTER:
 		ambient = PewterAmbient;
 		diffuse = PewterDiffuse;
@@ -545,7 +480,7 @@ void Menu(int value)
 		DisplayScene();
 		break;
 
-	// materiał - srebro
+		// materiał - srebro
 	case SILVER:
 		ambient = SilverAmbient;
 		diffuse = SilverDiffuse;
@@ -554,7 +489,7 @@ void Menu(int value)
 		DisplayScene();
 		break;
 
-	// materiał - polerowane srebro
+		// materiał - polerowane srebro
 	case POLISHED_SILVER:
 		ambient = PolishedSilverAmbient;
 		diffuse = PolishedSilverDiffuse;
@@ -563,7 +498,7 @@ void Menu(int value)
 		DisplayScene();
 		break;
 
-	// materiał - szmaragd
+		// materiał - szmaragd
 	case EMERALD:
 		ambient = EmeraldAmbient;
 		diffuse = EmeraldDiffuse;
@@ -572,7 +507,7 @@ void Menu(int value)
 		DisplayScene();
 		break;
 
-	// materiał - jadeit
+		// materiał - jadeit
 	case JADE:
 		ambient = JadeAmbient;
 		diffuse = JadeDiffuse;
@@ -581,7 +516,7 @@ void Menu(int value)
 		DisplayScene();
 		break;
 
-	// materiał - obsydian
+		// materiał - obsydian
 	case OBSIDIAN:
 		ambient = ObsidianAmbient;
 		diffuse = ObsidianDiffuse;
@@ -590,7 +525,7 @@ void Menu(int value)
 		DisplayScene();
 		break;
 
-	// materiał - perła
+		// materiał - perła
 	case PEARL:
 		ambient = PearlAmbient;
 		diffuse = PearlDiffuse;
@@ -599,7 +534,7 @@ void Menu(int value)
 		DisplayScene();
 		break;
 
-	// metariał - rubin
+		// metariał - rubin
 	case RUBY:
 		ambient = RubyAmbient;
 		diffuse = RubyDiffuse;
@@ -608,7 +543,7 @@ void Menu(int value)
 		DisplayScene();
 		break;
 
-	// materiał - turkus
+		// materiał - turkus
 	case TURQUOISE:
 		ambient = TurquoiseAmbient;
 		diffuse = TurquoiseDiffuse;
@@ -617,7 +552,7 @@ void Menu(int value)
 		DisplayScene();
 		break;
 
-	// materiał - czarny plastik
+		// materiał - czarny plastik
 	case BLACK_PLASTIC:
 		ambient = BlackPlasticAmbient;
 		diffuse = BlackPlasticDiffuse;
@@ -626,7 +561,7 @@ void Menu(int value)
 		DisplayScene();
 		break;
 
-	// materiał - czarna guma
+		// materiał - czarna guma
 	case BLACK_RUBBER:
 		ambient = BlackRubberAmbient;
 		diffuse = BlackRubberDiffuse;
@@ -635,24 +570,19 @@ void Menu(int value)
 		DisplayScene();
 		break;
 
-	//Tekstury
-	//Drzewo
-	case TREE:
-		break;
-
-	// obszar renderingu - całe okno
+		// obszar renderingu - całe okno
 	case FULL_WINDOW:
 		aspect = FULL_WINDOW;
 		Reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
 		break;
 
-	// obszar renderingu - aspekt 1:1
+		// obszar renderingu - aspekt 1:1
 	case ASPECT_1_1:
 		aspect = ASPECT_1_1;
 		Reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
 		break;
 
-	// wyjście
+		// wyjście
 	case EXIT:
 		exit(0);
 	}
@@ -663,7 +593,7 @@ void Menu(int value)
 void ExtensionSetup()
 {
 	// pobranie numeru wersji biblioteki OpenGL
-	const char *version = (char *)glGetString(GL_VERSION);
+	const char * version = (char *)glGetString(GL_VERSION);
 
 	// odczyt wersji OpenGL
 	int major = 0, minor = 0;
@@ -683,20 +613,21 @@ void ExtensionSetup()
 	if (major > 1 || minor >= 4)
 	{
 		// pobranie wskaźnika wybranej funkcji OpenGL 1.4
-		glWindowPos2i = (PFNGLWINDOWPOS2IPROC)wglGetProcAddress((const GLubyte *)"glWindowPos2i");
+		//glRasterPos2i = (PFNGLWINDOWPOS2IPROC)wglGetProcAddress("glRasterPos2i");
 	}
 	else
 		// sprawdzenie czy jest obsługiwane rozszerzenie ARB_window_pos
 		if (glutExtensionSupported("GL_ARB_window_pos"))
-	{
-		// pobranie wskaźnika wybranej funkcji rozszerzenia ARB_window_pos
-		glWindowPos2i = (PFNGLWINDOWPOS2IPROC)wglGetProcAddress((const GLubyte *)"glWindowPos2iARB");
-	}
-	else
-	{
-		printf("Brak rozszerzenia ARB_window_pos!\n");
-		exit(0);
-	}
+		{
+			// pobranie wskaźnika wybranej funkcji rozszerzenia ARB_window_pos
+			//glRasterPos2i = (PFNGLWINDOWPOS2IPROC)wglGetProcAddress
+			//("glRasterPos2iARB");
+		}
+		else
+		{
+			printf("Brak rozszerzenia ARB_window_pos!\n");
+			exit(0);
+		}
 }
 
 // sprawdzenie numeru wersji biblioteki GLU
@@ -704,7 +635,7 @@ void ExtensionSetup()
 void GLUSetup()
 {
 	// pobranie numeru wersji biblioteki GLU
-	const char *version = (char *)gluGetString(GLU_VERSION);
+	const char * version = (char *)gluGetString(GLU_VERSION);
 
 	// sprawdzenie numeru wersji biblioteki GLU
 	int major = 0, minor = 0;
@@ -723,9 +654,10 @@ void GLUSetup()
 	// sprawdzenie czy jest co najmniej wersja 1.3 biblioteki GLU
 	if (major > 1 || minor >= 3)
 		GLU_1_3 = true;
+
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char * argv[])
 {
 	// inicjalizacja biblioteki GLUT
 	glutInit(&argc, argv);
@@ -783,13 +715,13 @@ int main(int argc, char *argv[])
 	int MenuMaterial = glutCreateMenu(Menu);
 #ifdef WIN32
 
-	glutAddMenuEntry("Mosiądz", BRASS);
-	glutAddMenuEntry("Brąz", BRONZE);
-	glutAddMenuEntry("Polerowany brąz", POLISHED_BRONZE);
+	glutAddMenuEntry("Mosiadz", BRASS);
+	glutAddMenuEntry("Braz", BRONZE);
+	glutAddMenuEntry("Polerowany braz", POLISHED_BRONZE);
 	glutAddMenuEntry("Chrom", CHROME);
-	glutAddMenuEntry("Miedź", COPPER);
-	glutAddMenuEntry("Polerowana miedź", POLISHED_COPPER);
-	glutAddMenuEntry("Złoto", GOLD);
+	glutAddMenuEntry("Miedz", COPPER);
+	glutAddMenuEntry("Polerowana miedz", POLISHED_COPPER);
+	glutAddMenuEntry("Zloto", GOLD);
 	glutAddMenuEntry("Polerowane złoto", POLISHED_GOLD);
 	glutAddMenuEntry("Grafit (cyna z ołowiem)", PEWTER);
 	glutAddMenuEntry("Srebro", SILVER);
@@ -797,7 +729,7 @@ int main(int argc, char *argv[])
 	glutAddMenuEntry("Szmaragd", EMERALD);
 	glutAddMenuEntry("Jadeit", JADE);
 	glutAddMenuEntry("Obsydian", OBSIDIAN);
-	glutAddMenuEntry("Perła", PEARL);
+	glutAddMenuEntry("Perla", PEARL);
 	glutAddMenuEntry("Rubin", RUBY);
 	glutAddMenuEntry("Turkus", TURQUOISE);
 	glutAddMenuEntry("Czarny plastik", BLACK_PLASTIC);
@@ -825,14 +757,11 @@ int main(int argc, char *argv[])
 	glutAddMenuEntry("Czarna guma", BLACK_RUBBER);
 #endif
 
-	int MenuTexture = glutCreateMenu(Menu);
-	glutAddMenuEntry("Drzewo", TREE);
-
 	// utworzenie podmenu - Aspekt obrazu
 	int MenuAspect = glutCreateMenu(Menu);
 #ifdef WIN32
 
-	glutAddMenuEntry("Aspekt obrazu - całe okno", FULL_WINDOW);
+	glutAddMenuEntry("Aspekt obrazu - cale okno", FULL_WINDOW);
 #else
 
 	glutAddMenuEntry("Aspekt obrazu - cale okno", FULL_WINDOW);
@@ -844,11 +773,20 @@ int main(int argc, char *argv[])
 	glutCreateMenu(Menu);
 	glutAddSubMenu("GLU_DISPLAY_MODE", MenuDisplayMode);
 	glutAddSubMenu("GLU_SAMPLING_METHOD", MenuSamplingMethod);
-	glutAddMenuEntry("Dziura wlacz/wylacz", HOLE);
+
+#ifdef WIN32
+
 	glutAddSubMenu("Material", MenuMaterial);
-	glutAddSubMenu("Tekstura", MenuTexture);
+
 	glutAddSubMenu("Aspekt obrazu", MenuAspect);
 	glutAddMenuEntry("Wyjscie", EXIT);
+#else
+	
+//	glutAddMenuEntry("Dziura wlacz/wylacz", HOLE);
+	glutAddSubMenu("Material", MenuMaterial);
+	glutAddSubMenu("Aspekt obrazu", MenuAspect);
+//	glutAddMenuEntry("Wyjscie", EXIT);
+#endif
 
 	// określenie przycisku myszki obsługującej menu podręczne
 	glutAttachMenu(GLUT_RIGHT_BUTTON);

@@ -8,33 +8,32 @@
 * Email: marceniuk@yahoo.com
 */
 
+//#include "stdafx.h"
 //#include <windows.h> // plik nagłówkowy dla Windows
 #include <math.h> // plik nagłówkowy dla biblioteki matematycznej
-//#include <cmath>
-#include <stdio.h>   // plik nagłówkowy dla we/wy standardowego
-#include <stdlib.h>  // plik nagłówkowy dla bibioteki standardowej
-#include <GL/gl.h>   // plik nagłówkowy dla biblioteki OpenGL32
-#include <GL/glu.h>  // plik nagłówkowy dla biblioteki GLu32
+#include <stdio.h> // plik nagłówkowy dla we/wy standardowego
+#include <stdlib.h> // plik nagłówkowy dla bibioteki standardowej
+#include <GL/gl.h> // plik nagłówkowy dla biblioteki OpenGL32
+#include <GL/glu.h> // plik nagłówkowy dla biblioteki GLu32
 #include <GL/glut.h> // plik nagłówkowy dla biblioteki Glut
-#include <GL/glext.h>
+#include "glext.h"
 #include "targa.h"
 #include "stdio.h"
+
 
 // stałe do obsługi menu podręcznego
 
 enum
 {
-	VENUS_TEX,   // Wenus
-	EARTH_TEX,   // Ziemia
-	MARS_TEX,	// Mars
-	FULL_WINDOW, // aspekt obrazu - całe okno
-	ASPECT_1_1,  // aspekt obrazu 1:1
-	EXIT		 // wyjście
+	WATER_TEX, // Water
+	STONE_TEX, // Stone
+	METAL_TEX, // Metal
+	SAND_TEX,  // Sand
+
+	EXIT // wyjście
 };
 
-// aspekt obrazu
-
-int aspect = ASPECT_1_1;
+int texture = WATER_TEX;
 
 // rozmiary bryły obcinania
 
@@ -62,17 +61,16 @@ int button_x, button_y;
 
 GLfloat scale = 3.5;
 
-typedef struct point_3d
-{ // struktura dla punktu 3D
+typedef struct point_3d { // struktura dla punktu 3D
 
 	double x, y, z;
 
 } POINT_3D;
 
-typedef struct bpatch
-{ // struktura dla wielomiana fragmentu Beziera 3 stopnia
 
-	POINT_3D anchors[4][4]; // siatka 4x4 punktów kontrolnych (anchor)
+typedef struct bpatch { // struktura dla wielomiana fragmentu Beziera 3 stopnia
+
+	POINT_3D anchors[4][8]; // siatka 4x8 punktów kontrolnych (anchor)
 
 	GLuint dlBPatch; // lista dla fragmentu Beziera
 
@@ -80,10 +78,15 @@ typedef struct bpatch
 
 } BEZIER_PATCH;
 
+
 //HDC hDC = NULL; // kontekst urządzenia
+
 //HGLRC hRC = NULL; // kontekst renderingu
+
 //HWND hWnd = NULL; // deskryptor okna
+
 //HINSTANCE hInstance; // egzemplarz programu
+
 
 bool keys[256]; // tablica jednowymiarowa dla klawiatury
 
@@ -91,7 +94,9 @@ bool active = true; // flag of application activity
 
 bool fullscreen = true; // flag of full-screen mode
 
+
 //DEVMODE DMsaved; // zachować ustawienia przeszłego trybu
+
 
 GLfloat rotz = 0.0f; // obroty współrzędnej Z
 
@@ -101,46 +106,42 @@ bool showCPoints = true; // switcher of anchor points of net
 
 int divs = 7; // number of interpolation (distribution of polygon)
 
+
+
 //LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM); // deklaracja dla WndProc
 
-//functions for vector operations. It can be used any C++ class for 3D point
+													  //functions for vector operations. It can be used any C++ class for 3D point
 
-// addition of 2 points
+													  // addition of 2 points
 
-POINT_3D pointAdd(POINT_3D p, POINT_3D q)
-{
+POINT_3D pointAdd(POINT_3D p, POINT_3D q) {
 
-	p.x += q.x;
-	p.y += q.y;
-	p.z += q.z;
+	p.x += q.x; p.y += q.y; p.z += q.z;
 
 	return p;
+
 }
 
 // multiplication of point by constant
 
-POINT_3D pointTimes(double c, POINT_3D p)
-{
+POINT_3D pointTimes(double c, POINT_3D p) {
 
-	p.x *= c;
-	p.y *= c;
-	p.z *= c;
+	p.x *= c; p.y *= c; p.z *= c;
 
 	return p;
+
 }
 
 // making new point
 
-POINT_3D makePoint(double a, double b, double c)
-{
+POINT_3D makePoint(double a, double b, double c) {
 
 	POINT_3D p;
 
-	p.x = a;
-	p.y = b;
-	p.z = c;
+	p.x = a; p.y = b; p.z = c;
 
 	return p;
+
 }
 
 //function for calculation of 3rd order polynomial (each counterpart in Bezie curve equation is one of so called
@@ -152,22 +153,25 @@ POINT_3D makePoint(double a, double b, double c)
 
 // and variable u changed from 0 to 1
 
-POINT_3D Bernstein(float u, POINT_3D *p)
-{
+POINT_3D Bernstein(float u, POINT_3D *p) {
 
 	POINT_3D a, b, c, d, r;
 
+
 	a = pointTimes(pow(u, 3), p[0]);
 
-	b = pointTimes(3 * pow(u, 2) * (1 - u), p[1]);
+	b = pointTimes(3 * pow(u, 2)*(1 - u), p[1]);
 
-	c = pointTimes(3 * u * pow((1 - u), 2), p[2]);
+	c = pointTimes(3 * u*pow((1 - u), 2), p[2]);
 
 	d = pointTimes(pow((1 - u), 3), p[3]);
 
+
 	r = pointAdd(pointAdd(a, b), pointAdd(c, d));
 
+
 	return r;
+
 }
 
 //this function generates all slices of triangles and stores them in display list.
@@ -184,8 +188,7 @@ POINT_3D Bernstein(float u, POINT_3D *p)
 // then to calculate vector product in order to get perpendicular for both axes and then
 // to normalize vector and to use it as normal.
 
-GLuint genBezier(BEZIER_PATCH patch, int divs)
-{
+GLuint genBezier(BEZIER_PATCH patch, int divs) {
 
 	int u = 0, v;
 
@@ -193,40 +196,49 @@ GLuint genBezier(BEZIER_PATCH patch, int divs)
 
 	GLuint drawlist = glGenLists(1);
 
-	POINT_3D temp[4];
+	POINT_3D temp[8];
 
-	POINT_3D *last = (POINT_3D *)malloc(sizeof(POINT_3D) * (divs + 1));
+	POINT_3D *last = (POINT_3D*)malloc(sizeof(POINT_3D)*(divs + 1));
 
-	if (patch.dlBPatch != 0)
+
+	if (patch.dlBPatch != NULL)
 
 		glDeleteLists(patch.dlBPatch, 1);
 
-	temp[0] = patch.anchors[0][3];
 
-	temp[1] = patch.anchors[1][3];
+	temp[0] = patch.anchors[0][7];
 
-	temp[2] = patch.anchors[2][3];
+	temp[1] = patch.anchors[1][7];
 
-	temp[3] = patch.anchors[3][3];
+	temp[2] = patch.anchors[2][7];
 
-	for (v = 0; v <= divs; v++)
-	{
+	temp[3] = patch.anchors[3][7];
+
+
+
+	for (v = 0; v <= divs; v++) {
 
 		px = ((float)v) / ((float)divs);
 
+
+
 		last[v] = Bernstein(px, temp);
+
 	}
+
 
 	glNewList(drawlist, GL_COMPILE);
 
 	glBindTexture(GL_TEXTURE_2D, patch.texture);
 
-	for (u = 1; u <= divs; u++)
-	{
+
+
+	for (u = 1; u <= divs; u++) {
 
 		py = ((float)u) / ((float)divs);
 
 		pyold = ((float)u - 1.0f) / ((float)divs);
+
 
 		temp[0] = Bernstein(py, patch.anchors[0]);
 
@@ -236,10 +248,19 @@ GLuint genBezier(BEZIER_PATCH patch, int divs)
 
 		temp[3] = Bernstein(py, patch.anchors[3]);
 
+		temp[4] = Bernstein(py, patch.anchors[4]);
+
+		temp[5] = Bernstein(py, patch.anchors[5]);
+
+		temp[6] = Bernstein(py, patch.anchors[6]);
+
+		temp[7] = Bernstein(py, patch.anchors[7]);
+
+
 		glBegin(GL_TRIANGLE_STRIP);
 
-		for (v = 0; v <= divs; v++)
-		{
+
+		for (v = 0; v <= divs; v++) {
 
 			px = ((float)v) / ((float)divs);
 
@@ -247,60 +268,42 @@ GLuint genBezier(BEZIER_PATCH patch, int divs)
 
 			glVertex3d(last[v].x, last[v].y, last[v].z);
 
+
 			last[v] = Bernstein(px, temp);
 
 			glTexCoord2f(py, px);
 
 			glVertex3d(last[v].x, last[v].y, last[v].z);
+
 		}
 
 		glEnd();
+
 	}
 
 	glEndList();
 
 	free(last);
 
-	return drawlist;
+	return drawlist; 
+
 }
 
-void initBezier(void)
-{
 
-	mybezier.anchors[0][0] = makePoint(-0.75, -0.75, -0.50);
-
-	mybezier.anchors[0][1] = makePoint(-0.25, -0.75, 0.00);
-
-	mybezier.anchors[0][2] = makePoint(0.25, -0.75, 0.00);
-
-	mybezier.anchors[0][3] = makePoint(0.75, -0.75, -0.50);
-
-	mybezier.anchors[1][0] = makePoint(-0.75, -0.25, -0.75);
-
-	mybezier.anchors[1][1] = makePoint(-0.25, -0.25, 0.50);
-
-	mybezier.anchors[1][2] = makePoint(0.25, -0.25, 0.50);
-
-	mybezier.anchors[1][3] = makePoint(0.75, -0.25, -0.75);
-
-	mybezier.anchors[2][0] = makePoint(-0.75, 0.25, 0.00);
-
-	mybezier.anchors[2][1] = makePoint(-0.25, 0.25, -0.50);
-
-	mybezier.anchors[2][2] = makePoint(0.25, 0.25, -0.50);
-
-	mybezier.anchors[2][3] = makePoint(0.75, 0.25, 0.00);
-
-	mybezier.anchors[3][0] = makePoint(-0.75, 0.75, -0.50);
-
-	mybezier.anchors[3][1] = makePoint(-0.25, 0.75, -1.00);
-
-	mybezier.anchors[3][2] = makePoint(0.25, 0.75, -1.00);
-
-	mybezier.anchors[3][3] = makePoint(0.75, 0.75, -0.50);
-
-	mybezier.dlBPatch = 0;
+double t = 0;
+void initBezier(void) {
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 8; j++) {
+			mybezier.anchors[i][j] = makePoint(i - 1.5, j - 1.5, .1);
+			mybezier.anchors[i][j].x = mybezier.anchors[i][j].x*sin(0.0008 * t++);
+			mybezier.anchors[i][j].y = mybezier.anchors[i][j].y*sin(0.0008 * t++);
+			mybezier.anchors[i][j].z = mybezier.anchors[i][j].z*sin(0.0008 * t++);
+		}
+	}
+	mybezier.dlBPatch = NULL;
 }
+
 
 int InitGL(GLvoid)
 
@@ -320,19 +323,27 @@ int InitGL(GLvoid)
 
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
+
 	initBezier();
 
-	// wczytanie tekstury Venus utworzonej ze zdjęć sondy Magellan
-	// plik: http://maps.jpl.nasa.gov/pix/ven0aaa2.tif
 	GLsizei width_texture, height_texture; // zmienne użyte przy obsłudze plików TARGA
 	GLenum format, type;
-	GLvoid *Ptr_mybezier_texture;
-	GLboolean error = load_targa("water_plain_sea.tga", width_texture, height_texture, format, type, Ptr_mybezier_texture);
+	GLvoid *Ptr_mybezier_texture = nullptr;
+	GLboolean error;
+
+	if (texture == WATER_TEX)
+		error = load_targa("water_plain_sea.tga", width_texture, height_texture, format, type, Ptr_mybezier_texture);
+	else if (texture == STONE_TEX)
+		error = load_targa("stone.tga", width_texture, height_texture, format, type, Ptr_mybezier_texture);
+	else if (texture == METAL_TEX)
+		error = load_targa("metal.tga", width_texture, height_texture, format, type, Ptr_mybezier_texture);
+	else if (texture == SAND_TEX)
+		error = load_targa("sand.tga", width_texture, height_texture, format, type, Ptr_mybezier_texture);
 
 	// błąd odczytu pliku
 	if (error == GL_FALSE)
 	{
-		printf("Niepoprawny odczyt pliku water_plain_sea.tga");
+		printf("Niepoprawny odczyt pliku .tga");
 		exit(0);
 	}
 
@@ -348,13 +359,14 @@ int InitGL(GLvoid)
 	mybezier.dlBPatch = genBezier(mybezier, divs);
 
 	// porządki
-	//delete[](GLvoid *) Ptr_mybezier_texture;
+	delete[](GLvoid*)Ptr_mybezier_texture;
 
 	return true;
+
 }
 
-void DrawGLScene(GLvoid)
-{
+
+void DrawGLScene(GLvoid) {
 
 	int i, j;
 
@@ -363,8 +375,10 @@ void DrawGLScene(GLvoid)
 	////////////////////
 	glLoadIdentity();
 
+
 	// obroty obiektu
 	glRotatef(-75.0f, 1.0f, 0.0f, 0.0f);
+
 
 	// przesunięcie układu współrzędnych obiektów do środka bryły odcinania
 	glTranslatef(0.0, 0.0, -(near_ + far_) / 2);
@@ -376,9 +390,11 @@ void DrawGLScene(GLvoid)
 	// skalowanie obiektu - klawisze "+" i "-"
 	glScalef(scale, scale, scale);
 
+
 	glCallList(mybezier.dlBPatch);
 
-	//bool showCPoint = true;
+
+	bool showCPoint = true;
 	if (showCPoints)
 	{
 
@@ -389,33 +405,36 @@ void DrawGLScene(GLvoid)
 		// rozmiar punktów
 		glPointSize(6.0);
 
-		for (i = 0; i < 4; i++)
-		{
+		for (i = 0; i<4; i++) {
 
 			glBegin(GL_LINE_STRIP);
 
-			for (j = 0; j < 4; j++)
+
+			for (j = 0; j<8; j++)
 
 				glVertex3d(mybezier.anchors[i][j].x, mybezier.anchors[i][j].y, mybezier.anchors[i][j].z);
 
 			glEnd();
+
 		}
 
-		for (i = 0; i < 4; i++)
-		{
+		for (i = 0; i<4; i++) {
 
 			glBegin(GL_LINE_STRIP);
 
-			for (j = 0; j < 4; j++)
+
+			for (j = 0; j<8; j++)
 
 				glVertex3d(mybezier.anchors[j][i].x, mybezier.anchors[j][i].y, mybezier.anchors[j][i].z);
 
 			glEnd();
+
 		}
 
 		glColor3f(1.0f, 1.0f, 1.0f);
 
 		glEnable(GL_TEXTURE_2D);
+
 	}
 
 	// wyświetlenie sceny
@@ -425,6 +444,17 @@ void DrawGLScene(GLvoid)
 	glFlush();
 
 	glutSwapBuffers();
+
+}
+
+
+void TimerFunction(int value) {
+
+	InitGL();
+	DrawGLScene();
+	glutPostRedisplay();
+	glutTimerFunc(1000, TimerFunction, 1);
+
 }
 
 void resize(int width, int height)
@@ -437,6 +467,7 @@ void resize(int width, int height)
 	glMatrixMode(GL_MODELVIEW);
 	DrawGLScene();
 }
+
 
 // obsługa przycisków myszki
 
@@ -479,15 +510,44 @@ void Keyboard(unsigned char key, int x, int y)
 
 		// klawisz -
 		if (key == '-' && scale > 0.05)
-		scale -= 0.05;
+			scale -= 0.05;
 
 	// narysowanie sceny
 	DrawGLScene();
 }
 
-void Menu(int input)
+// obsługa menu podręcznego
+void Menu(int value)
 {
+	
+	switch (value)
+	{
+	case WATER_TEX:
+		texture = WATER_TEX;
+		InitGL();
+		break;
 
+	
+	case STONE_TEX:
+		texture = STONE_TEX;
+		InitGL();
+		break;
+
+	
+	case METAL_TEX:
+		texture = METAL_TEX;
+		InitGL();
+		break;
+
+	case SAND_TEX:
+		texture = SAND_TEX;
+		InitGL();
+		break;
+		
+		// wyjście
+	case EXIT:
+		exit(0);
+	}
 }
 
 int main(int argc, char *argv[])
@@ -511,7 +571,7 @@ int main(int argc, char *argv[])
 
 	// dołączenie funkcji wywoływanej przy zmianie rozmiaru okna
 	glutReshapeFunc(resize);
-	//glutReshapeFunc(Reshape);
+
 
 	// dołączenie funkcji obsługi klawiatury
 	glutKeyboardFunc(Keyboard);
@@ -521,20 +581,55 @@ int main(int argc, char *argv[])
 
 	// obsługa ruchu kursora myszki
 	glutMotionFunc(MouseMotion);
-	
-	glutCreateMenu(Menu);
-	{
-		glutAddSubMenu("Tekstury")
-		glutAddMenuEntry("Tekstury")
-	}
 
 	InitGL();
+
+	// Pętla przekształceń
+	glutTimerFunc(2000, TimerFunction, 1);
+
+	int MenuTekstura = glutCreateMenu(Menu);
+#ifdef WIN32
+	glutAddMenuEntry("WATER", WATER_TEX);
+#else
+	glutAddMenuEntry("WATER", WATER_TEX);
+#endif
+#ifdef WIN32
+	glutAddMenuEntry("STONE", STONE_TEX);
+#else
+	glutAddMenuEntry("STONE", METAL_TEX);
+#endif
+#ifdef WIN32
+	glutAddMenuEntry("METAL", METAL_TEX);
+#else
+	glutAddMenuEntry("METAL", METAL_TEX);
+#endif
+#ifdef WIN32
+	glutAddMenuEntry("SAND", SAND_TEX);
+#else
+	glutAddMenuEntry("SAND", SAND_TEX);
+#endif
+
+	// menu główne
+	glutCreateMenu(Menu);
+#ifdef WIN32
+	glutAddSubMenu("Tekstura", MenuTekstura);
+#else
+	glutAddSubMenu("Tekstura", MenuTekstura);
+#endif
+#ifdef WIN32
+	glutAddMenuEntry("Wyjscie", EXIT);
+#else
+	glutAddMenuEntry("Wyjscie", EXIT);
+#endif
+
+	// określenie przycisku myszki obsługującej menu podręczne
+	glutAttachMenu(GLUT_RIGHT_BUTTON);
 
 	// wprowadzenie programu do obsługi pętli komunikatów
 	glutMainLoop();
 
 	// porządki
-	//delete[](GLvoid *) mybezier.texture;
+	delete[](GLvoid*)mybezier.texture;
 
 	return 0;
 }
