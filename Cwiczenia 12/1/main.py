@@ -72,14 +72,32 @@ def draw():
 	# Rysujemy gałęzi choinki
 	# Ustalamy materiał: rysować z 2 stron, światło otaczające, kolor zielony
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, greencolor)
-	glTranslatef(0.0, 0.0, 0.2) # Przesuniemy się wzdłuż osi Z	na 0.2
+	glTranslatef(0.0, 0.0, 0.1) # Przesuniemy się wzdłuż osi Z	na 0.2
 	# Rysujemy dolne gałęzi (stożek) z radiusem 0.5, wysokością 0.5
 	# Ostatnie dwie liczby okreslają ilość wielokątów
-	glutSolidCone(0.5, 0.5, 20, 20)
-	glTranslatef(0.0, 0.0, 0.3) # Przesuniemy się wzdłuż osi Z	na -0.3
-	glutSolidCone(0.4, 0.4, 20, 20) # Stożek z radiusem 0.4,	wysokość 0.4
-	glTranslatef(0.0, 0.0, 0.3) # Przesuniemy się wzdłuż osi Z	na -0.3
-	glutSolidCone(0.3, 0.3, 20, 20) # Stożek z radiusem 0.3,	wysokość 0.3
+	glutSolidCone(0.5, 0.3, 20, 20)
+	glTranslatef(0.0, 0.0, 0.1)
+	glutSolidCone(0.5, 0.3, 20, 20)
+	glTranslatef(0.0, 0.0, 0.1)
+	glutSolidCone(0.5, 0.3, 20, 20)
+	glTranslatef(0.0, 0.0, 0.1)
+	glutSolidCone(0.5, 0.3, 20, 20)
+	glTranslatef(0.0, 0.0, 0.1)
+	glutSolidCone(0.5, 0.3, 20, 20)
+	glTranslatef(0.0, 0.0, 0.1)
+	glutSolidCone(0.5, 0.3, 20, 20)
+	glTranslatef(0.0, 0.0, 0.1)
+	glutSolidCone(0.5, 0.3, 20, 20)
+	glTranslatef(0.0, 0.0, 0.1)
+	glutSolidCone(0.5, 0.3, 20, 20)
+	glTranslatef(0.0, 0.0, 0.1)
+	glutSolidCone(0.5, 0.3, 20, 20)
+	glTranslatef(0.0, 0.0, 0.1)
+	glutSolidCone(0.5, 0.3, 20, 20)
+	glTranslatef(0.0, 0.0, 0.1) # Przesuniemy się wzdłuż osi Z	na -0.3
+	glutSolidCone(0.5, 0.4, 20, 20) # Stożek z radiusem 0.4,	wysokość 0.4
+	#glTranslatef(0.0, 0.0, 0.3) # Przesuniemy się wzdłuż osi Z	na -0.3
+#	glutSolidCone(0.3, 0.3, 20, 20) # Stożek z radiusem 0.3,	wysokość 0.3
 	glPopMatrix() # Wracamy zachowane położenie	"kamery"
 	glutSwapBuffers() # Wyprowadzamy wszystko namalowane w pamięci na ekran
 # Tutaj zaczanamy wykonywać program
