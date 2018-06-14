@@ -296,9 +296,9 @@ void initBezier(void) {
 	{
 		for (int j = 0; j < 8; j++) {
 			mybezier.anchors[i][j] = makePoint(i - 1.5, j - 1.5, .1);
-			mybezier.anchors[i][j].x = mybezier.anchors[i][j].x*sin(0.0008 * t++);
-			mybezier.anchors[i][j].y = mybezier.anchors[i][j].y*sin(0.0008 * t++);
-			mybezier.anchors[i][j].z = mybezier.anchors[i][j].z*sin(0.0008 * t++);
+			mybezier.anchors[i][j].x = mybezier.anchors[i][j].x*sin(0.0011 * t++);
+			mybezier.anchors[i][j].y = mybezier.anchors[i][j].y*sin(0.0011 * t++);
+			mybezier.anchors[i][j].z = mybezier.anchors[i][j].z*sin(0.0011 * t++);
 		}
 	}
 	mybezier.dlBPatch = NULL;

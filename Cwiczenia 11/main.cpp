@@ -215,7 +215,7 @@ void display(void)
 		glEnable(GL_LIGHTING);
 		glDisable(GL_LIGHT0);
 		glEnable(GL_DEPTH_TEST);
-		glutSolidCone(2.0, 2.0, 12.0, 1.0);
+		glutSolidCone(3.0, 2.0, 11.0, 2.0);
 	}
 	if (fuel > 0)
 
